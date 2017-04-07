@@ -33,7 +33,7 @@
 	* Please report any and all bugs found to me
 
 --- CHANGELOG ---
-Build 19 - JoshuaDoes - April 6th, 2017 - 11:08 PM EST / 23:08 EST
+Build 19 - JoshuaDoes - April 6th, 2017 - 11:18 PM EST / 23:18 EST
 	*** Changed name to zPlayer Preview
 		* This was done to match the "perpetual beta" technique I've been using for
 		  releasing zPlayer builds
@@ -98,6 +98,7 @@ Build 19 - JoshuaDoes - April 6th, 2017 - 11:08 PM EST / 23:08 EST
 	  the left
 	+ Moved the Import Playlist and Export Playlist buttons to the original locations of
 	  the Add CD and Playlist Management buttons respectively
+	+ Removed the BassCD library until CD playback is progressed on
 
 Build 18 - JoshuaDoes - March 4th, 2017 - 02:28 AM EST / 02:28 EST
 	+ Added resizing of the main interface
