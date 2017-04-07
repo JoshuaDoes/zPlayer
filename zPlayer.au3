@@ -23,6 +23,7 @@
 	  and are modified to match the asset availability requirements for zPlayer
 	- Paint.NET for allowing me to modify icons properly to be able to use them in
 	  zPlayer
+	- Other licenses in their respective folders
 #ce ----------------------------------------------------------------------------~JD
 
 #Region ;Directives on how to compile and/or run zPlayer using AutoIt3Wrapper_GUI
@@ -30,7 +31,7 @@
 #AutoIt3Wrapper_Icon=assets\icons\zPlayer.ico
 #AutoIt3Wrapper_Outfile=zPlayer Preview Build 19.exe
 #AutoIt3Wrapper_UseX64=n
-#AutoIt3Wrapper_Res_Comment=Play audio files with a graphically clean and simple interface that users come to expect from their favorite media players.
+#AutoIt3Wrapper_Res_Comment=Play media files with a graphically clean and simple interface that users come to expect from their favorite media players.
 #AutoIt3Wrapper_Res_Description=zPlayer Preview
 #AutoIt3Wrapper_Res_Fileversion=19
 #AutoIt3Wrapper_Res_LegalCopyright=JoshuaDoes © 2017
