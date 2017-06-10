@@ -1,23 +1,23 @@
 --- TODO ---
 	- Modulate all the things and give each module an STDIN/STDOUT pipeline for
-	  communication amongst each other
+		communication amongst each other
 		* Possible latency on very slow systems
 		+ Add support for YouTube-DL as a system module to replace the unstable
-		  YouTubeInMP3 API service
+			YouTubeInMP3 API service
 			* This will widen the range of supported services to more than just YouTube,
-			  and zPlayer will attempt to support as many of these as possible
+				and zPlayer will attempt to support as many of these as possible
 			* This will also re-implement the fossil of the network cache, where the
-			  module will keep track of the current downloads and also add a placeholder
-			  entry in the playlist for the track with a status flag for "Not ready" until
-			  the track is ready
+				module will keep track of the current downloads and also add a placeholder
+				entry in the playlist for the track with a status flag for "Not ready" until
+				the track is ready
 	- Add automatic updating with Stable and Beta channels, optionally supporting
-	  a custom update URL for other forks of zPlayer's source code
+		a custom update URL for other forks of zPlayer's source code
 		* If one were to supply a custom update URL for other forks and the fork
-		  has a modified or different update system, this URL could point to a
-		  static file that will download and open the latest version of the custom
-		  zPlayer fork to auto-install it rather than being required to follow the
-		  update logic currently implemented and download the custom zPlayer fork
-		  manually
+			has a modified or different update system, this URL could point to a
+			static file that will download and open the latest version of the custom
+			zPlayer fork to auto-install it rather than being required to follow the
+			update logic currently implemented and download the custom zPlayer fork
+			manually
 	- Add CD playback
 	- Add video playback
 	- Add Last.FM support for scrobbling tracks
@@ -25,133 +25,184 @@
 	- Add playlist exporting
 	- Add translation support for all the things
 	- Add a settings menu
-	- Add repeat and shuffle functionality
 	- Add equalizer
+	- Add download progress info in the playlist view when downloading/buffering a
+		network stream
+	- Implement YouTube-DL to replace current network handling
+	- Add file tag/info viewer/editor
 
 --- KNOWN BUGS ---
-	*** NONE :D ***
+	- You must triple-click an entry in the playlist view to play it
+	- The "save" button flickers randomly or does not draw properly
+	- The current API being used for YouTube MP3 playback sometimes returns the
+		HTML page for conversion rather than the MP3 file itself if they don't have the
+		MP3 in their database
+	- Adding to the playlist while the playlist view is active and the window is maximized
+		will continuously restore and re-maximize the window for every entry added to
+		the playlist to compensate for me being lazy and refreshing the playlist view rather
+		than adding to it, which results in an improperly sized playlist view without this
+		on-purpose bug
+		- Sorry, will be less lazy for next release
+	- Sometimes when adding tracks, the GUI will not update until the window is moved or
+		maximized/restored
 	* Please report any and all bugs found to me
 
 --- CHANGELOG ---
+Build 20 - JoshuaDoes - June 9th, 2017 - 11:17 PM EST / 23:17 EST
+	*** I've officially forgotten all about this changelog so I'm just going to
+		cross-reference with the previous build for these changes, please
+		correct me on any mistakes with a pull request to the GitHub at
+		(JoshuaDoes/zPlayer)
+	+ Added "random" track selection, disabled by default
+		* Currently this is only incorporated to the "next" function, which is used after the
+			current track ends and also when pressing the "Next" button
+	+ Added playlist repeating to go back to the beginning of the playlist and continue
+		playing from there, enabled by default
+	+ Added a proper playlist view, with a strange bug requiring triple-clicking to play
+		the selection rather than double-clicking
+	- Removed a few file types from file selection until proper libraries are implemented
+		to handle them (such as FLAC)
+	+ Added "fake black" (0x1C1C1C) and "fake white" (0xFAFAFA) as replacements for
+		the original black (0x000000) and white (0xFFFFFF) colors in use for the interface
+	+ Fixed an issue where some notices were undefined
+	+ Added proper CD drive listing, currently with no purpose
+	+ Changed functionality to properly handle HTTP, HTTPS, FTP, and YouTube URLs when
+		parsing any URL added to the "Add URL" dialog box
+	+ Prepare for file injection into a currently running zPlayer instance, not yet implemented
+		* If you have two separate zPlayer files (renamed or separate folders), they will be
+			able to run alongside each other; opening a file using zPlayer will only apply to
+			whichever instance's file location matches that of the registry
+	+ Fixed an issue where changing the track position would fail
+		* It failed very miserably, so I'm actually quite happy that I fixed it
+	- Removed the "About" window due to the clunky way it was displayed
+	+ Added the ability to silently toggle developer mode
+		* To toggle, hold SHIFT and then press G, O, and D at the same time
+	+ Added a save button, which, when playing a network track, will silently download
+		the track to the chosen location without checking progress
+		* In the next update, plans are to have a download progress bar (or buffer bar)
+			and also add more things to do with the download either during or after
+	+ Added self-extraction of required files so that an entire release can be packed into a
+		single executable
+
 Build 19 - JoshuaDoes - April 6th, 2017 - 11:18 PM EST / 23:18 EST
 	*** Changed name to zPlayer Preview
 		* This was done to match the "perpetual beta" technique I've been using for
-		  releasing zPlayer builds
+			releasing zPlayer builds
 	- Removed everything to do with modules
 		* Modules will be implemented (properly) at a later date, but I need to get
-		  other things out and working first since this will take up a lot of my time
+			other things out and working first since this will take up a lot of my time
 	+ Fixed an issue where fullscreening the zPlayer window would sometimes have a
-	  white border of varying widths all the way around
+		white border of varying widths all the way around
 		* In order for this to be fixed, the drop shadow was sacrificed
 	+ Added log file functionality
 		* Debug messages will save to and append [.\zPlayer-MON-DAY-YEAR.log]
 	+ Changed functionality so that removing the current track would hold the position
-	  of where you are in the playlist rather than reset back to the beginning of the
-	  playlist
+		of where you are in the playlist rather than reset back to the beginning of the
+		playlist
 	+ Fixed functionality so that changing the channel volume when no tracks exist would
-	  not result in an array out-of-bounds error
+		not result in an array out-of-bounds error
 	+ Added hotkeys for specific media tasks
 	+ Added functionality to allow the user to go to the end of the playlist if they use
-	  the Previous button while on the first track of the playlist
+		the Previous button while on the first track of the playlist
 	+ Added importing/exporting of playlists and the Import Playlist and Export Playlist
-	  buttons
+		buttons
 		* Currently only importing of M3U, M3U8, and XSPF playlists are supported
 		* Currently only exporting of M3U and M3U8 playlists are supported
 	+ Extended the minimum width of the main GUI to accomodate for new buttons
 	+ Added the ability to launch zPlayer with files, network URLs, and playlists as
-	  multiple command-line arguments
+		multiple command-line arguments
 		* This can allow you to choose to open an audio track via zPlayer, opening up the
-		  availability of using zPlayer as a daily music player
+			availability of using zPlayer as a daily music player
 		* The zPlayer window will not appear until a playlist, file, or network stream is
-		  completely loaded
+			completely loaded
 	+ Changed the logo displayed from the JPG to the ICO, deleting the JPG as ICO has
-	  transparency
+		transparency
 		* This makes me happy because better quality
 	+ Added an "About" window that appears when you click on the zPlayer logo
 		* Currently this launches zPlayer in an external process with no goal other than
-		  to display the About window and then exit
+			to display the About window and then exit
 		* A better method will be implemented once child GUIs are a thing again
 	+ Fixed an issue where pressing Next while the last track in the playlist was playing
-	  would not play the track at the beginning of the playlist
+		would not play the track at the beginning of the playlist
 	+ Switched from using ugly and full-color JPGs to transparent ICOs
 		* Not only is it also native to AutoIt, but this brings back the quality icons
-		  used for making zPlayer look amazing
+			used for making zPlayer look amazing
 	+ Added a Maxmize/Restore button
 		* When you click it to maximize the window, the icon changes to the restore icon
-		  and vice versa
+			and vice versa
 		* Using Aero-snap to maximize or restore the window will also change the icon,
-		  however due to AutoIt's limitations the icon won't redraw until you release the
-		  window
+			however due to AutoIt's limitations the icon won't redraw until you release the
+			window
 	+ Finally removed the network cache check timer from ages ago
 		* Why did I never catch this?
 	+ Added logic to use the user's clipboard contents as the default text entry for the
-	  Add URL input box if it contains "http://", "https://", or "ftp://"
+		Add URL input box if it contains "http://", "https://", or "ftp://"
 		* The text is selected by default, so if you need to manually type something or
-		  if you paste in what's in your clipboard then regardless both sides of the party
-		  will get the job done
+			if you paste in what's in your clipboard then regardless both sides of the party
+			will get the job done
 	+ Added logic for hiberation, thus enabling the Hibernate button once again
 	+ Added logic to delete the file [hiberfil.m3u] if zPlayer has startup parameters to
-	  load certain files and/or playlists
+		load certain files and/or playlists
 	+ Added logic to automatically play the current song if loading from hibernation mode
-	  or command-line parameters were entered
+		or command-line parameters were entered
 	+ Moved the Add CD and Playlist Management buttons down one row and aligned them to
-	  the left
+		the left
 	+ Moved the Import Playlist and Export Playlist buttons to the original locations of
-	  the Add CD and Playlist Management buttons respectively
+		the Add CD and Playlist Management buttons respectively
 	+ Removed the BassCD library until CD playback is progressed on
 
 Build 18 - JoshuaDoes - March 4th, 2017 - 02:28 AM EST / 02:28 EST
 	+ Added resizing of the main interface
 	+ Switched from using transparent PNGs to full-color JPGs
 		* Sadly JPGs don't have the best quality in the world due to the lack of an
-		  alpha channel, so the new icons are going to look a little sharper than
-		  the old ones
+			alpha channel, so the new icons are going to look a little sharper than
+			the old ones
 		* The logo is going to be replaced soon anyways so sorry that it looks terribad
 	+ Added logic to display the "File" icon in the service area if a local file is
-	  either queued or playing
+		either queued or playing
 	+ Fixed many issues regarding interface usage
 	+ Added logic to prevent adding network URLs to the playlist if no internet connection
-	  is detected
+		is detected
 	+ Added a new status for tracks, "Changing position...", for when the user is sliding
-	  the audio position slider and a track is loaded
+		the audio position slider and a track is loaded
 	+ Fixed an issue (that was highly annoying to fix, mind you) where the audio position
-	  slider would not update while the track was playing unless the user clicked on a
-	  different control in the interface
+		slider would not update while the track was playing unless the user clicked on a
+		different control in the interface
 	+ Fixed an issue where the displayed data would either update more than necessary or
-	  when it's not supposed to
+		when it's not supposed to
 	+ Proudly removed the PNG Buttons library
 	+ Fixed an issue in the changelog in regards to how the build date and time was
-	  separated in the changelog for Build 17
+		separated in the changelog for Build 17
 
 Build 17 - JoshuaDoes - March 2nd, 2017 - 03:33 AM EST / 03:33 EST
 	+ Added the ability to click on the service icon to open the current track's
-	  remote location
+		remote location
 	+ Fixed an issue where clicking on the delete button while the current track is
-	  playing would result in the track being removed from the playlist yet continue
-	  to play and be unable to be stopped
+		playing would result in the track being removed from the playlist yet continue
+		to play and be unable to be stopped
 	+ Fixed an issue where pressing the Previous or Next buttons while there was no
-	  track in the playlist would result in a crash due to an out-of-bounds error
+		track in the playlist would result in a crash due to an out-of-bounds error
 	+ Added a status system for the state of the current track, also allowing for
-	  slightly more detail to notices
+		slightly more detail to notices
 	+ Fixed an issue where the service icon of the current network track would not
-	  always update properly
+		always update properly
 	+ Added a very early work-in-progress module system
 		* This will load anything in the "modules" folder and kill it at shutdown
-		  at this point in time, but the plan is to have "system modules" that are
-		  absolutely necessary for zPlayer to have its official functions which can
-		  be swapped out by users for alternatives and also have "custom modules"
-		  which can guide zPlayer to do whatever the module wishies
+			at this point in time, but the plan is to have "system modules" that are
+			absolutely necessary for zPlayer to have its official functions which can
+			be swapped out by users for alternatives and also have "custom modules"
+			which can guide zPlayer to do whatever the module wishies
 		* Later on a permissions system will be implemented to govern over all modules
 	+ Added a very early work-in-progress playlist import and export system
 		* This is not yet available for the user to use at all and is not ready, however
-		  it will be used for the hibernation playlist and also some playlists from other
-		  media players
+			it will be used for the hibernation playlist and also some playlists from other
+			media players
 	+ Added preparations for a YouTube-DL module via the new status flag for the state of
-	  the current track, the flag being the number 3 meaning "Not ready"
+		the current track, the flag being the number 3 meaning "Not ready"
 	+ Fixed an issue where the file version number of the compiled version of zPlayer was
-	  "1.0.0.0" rather than "16.0.0.0", however this number has incremented to "17.0.0.0"
-	  in this build and will not be made apparent in zPlayer Build 16 by anything except
-	  the title
+		"1.0.0.0" rather than "16.0.0.0", however this number has incremented to "17.0.0.0"
+		in this build and will not be made apparent in zPlayer Build 16 by anything except
+		the title
 
 Build 16 - JoshuaDoes - February 24th, 2017 - 01:53 AM EST / 01:53 EST
 	-+* Began rewriting from scratch
@@ -167,140 +218,140 @@ Build 16 - JoshuaDoes - February 24th, 2017 - 01:53 AM EST / 01:53 EST
 Build 15 - JoshuaDoes - February 23rd, 2017 - 02:16 PM EST / 14:16 EST
 	+ Fixed the changelog to show the compile date of Build 14
 	+ Fixed an issue where adding multiple network tracks to the playlist and then
-	  hibernating would result in an array out-of-bounds error with the network
-	  cache at the next startup and also only the very first network track appearing
-	  in the playlist after rebooting zPlayer
+		hibernating would result in an array out-of-bounds error with the network
+		cache at the next startup and also only the very first network track appearing
+		in the playlist after rebooting zPlayer
 	+ Added the current millisecond to debug logs
 	+ Added a shortcut to view the current logs by pressing [CTRL + L] while the
-	  main zPlayer window is in focus
+		main zPlayer window is in focus
 		* If you have previously clicked on a button or the playlist view in the
-		  main window, please click on one of the empty black areas in order for
-		  the shortcut to register
+			main window, please click on one of the empty black areas in order for
+			the shortcut to register
 	+ Fixed an issue where adding to or removing from the playlist would not
-	  update the playlist, and the user was required to click on the Add CD button
-	  to trigger an update
+		update the playlist, and the user was required to click on the Add CD button
+		to trigger an update
 	+ Fixed an issue where some usage scenarios would result in the audio position
-	  slider's control becoming fully white
+		slider's control becoming fully white
 	+ Fixed an issue where some debug logs were logging as the incorrect function
 	- Removed old debug logging that was used in test case scenarios
 	+ Fixed an issue where adding new local files to the playlist would result in
-	  the track position area showing " KB/s" instead of "Ready"
+		the track position area showing " KB/s" instead of "Ready"
 	+ Fixed an issue where displaying or refreshing child GUIs would seem rather
-	  laggy on most systems
+		laggy on most systems
 	+ Added some more verbosity to debug logs and notices
 	+ Fixed an issue where moving the audio position slider longer than one second
-	  would result in the audio position slider being reset back to the position
-	  of the current audio track position, fixing many issues involving the audio
-	  position slider
+		would result in the audio position slider being reset back to the position
+		of the current audio track position, fixing many issues involving the audio
+		position slider
 	+ Fixed an issue where the current track position, the current audio position,
-	  and the current audio length would flash either rapidly or once every second
+		and the current audio length would flash either rapidly or once every second
 
 Build 14 - JoshuaDoes - February 20th, 2017 - 03:57 PM EST / 15:57 EST
 	+ Fixed an issue where MP4 files were listed in the file selection dialog
 		* This was a test for BASS functionality and it was forgotten about
-		  soon after testing
+			soon after testing
 	+ Fixed an issue where playlist management had the track's title under "Track"
-	  instead of "Title"
+		instead of "Title"
 	+ Fixed an issue where changing the position of the audio track manually and
-	  then playing a new track would lock the state of the audio position slider
+		then playing a new track would lock the state of the audio position slider
 	+ Fixed an issue where clicking on either the Add CD or the Playlist Management
-	  buttons if their child GUI was currently in view would unload it and then
-	  load it again, resulting in delays in other ongoing tasks
+		buttons if their child GUI was currently in view would unload it and then
+		load it again, resulting in delays in other ongoing tasks
 	+ Added a basic implementation of CD drive listing
 		* If no CD-ROM drives exist, an error will be displayed as a notice and
-		  the Playlist Management interface will be returned to view
+			the Playlist Management interface will be returned to view
 	+ Added a download speed calculator in kilobytes that is always calculated
-	  internally but is only shown if the currently selected track is being
-	  cached from the network
+		internally but is only shown if the currently selected track is being
+		cached from the network
 		* Later on, custom choices on what to display this in may be available
 	+ Fixed an issue where pressing the Previous or Next button while audio is not
-	  playing would result in the previous (if audio track position was 3 seconds
-	  or less), current (if audio track position was more than 3 seconds), or next
-	  track being played
+		playing would result in the previous (if audio track position was 3 seconds
+		or less), current (if audio track position was more than 3 seconds), or next
+		track being played
 
 Build 13 - JoshuaDoes - February 18th, 2017 - 07:56 AM EST / 07:56 EST
 	+ Added logic for child GUIs
 	+ Added a child GUI for playlist management, activated by clicking the
-	  Playlist Management button
+		Playlist Management button
 		* This is very experimental and may prove to be ultimately buggy
 	+ Added better handling of ID3 tags
 	+ Added a Delete Selected Playlist Entry button, which will delete either the
-	  current track number from the playlist or, if one is selected, the currently
-	  selected track from the playlist
+		current track number from the playlist or, if one is selected, the currently
+		selected track from the playlist
 		* This is not properly implemented and may prove to be buggy
 	+ Fixed an issue where adding multiple files failed to succeed
 
 Build 12 - JoshuaDoes - February 18th, 2017 - 02:31 AM EST / 02:31 EST
 	+ Fixed an issue where the event for the previous function was set to the GUI
-	  containing the Previous icon rather than the Previous icon itself
+		containing the Previous icon rather than the Previous icon itself
 	+ Fixed an issue where the current track number would not be updated if there
-	  was an issue with trying to play the currently selected track
+		was an issue with trying to play the currently selected track
 	+ Fixed an issue where the currently displayed data would not be removed if
-	  the audio was stopped by a reason other than the Stop button
+		the audio was stopped by a reason other than the Stop button
 	+ Fixed an issue where holding the hardware keyboard Volume Down or Volume Up
-	  would only update the volume once every second when the displayed audio data
-	  was refreshed
+		would only update the volume once every second when the displayed audio data
+		was refreshed
 	+ Fixed an issue where adding a track while the displayed audio data is not
-	  being refreshed would not update the playlist track count
+		being refreshed would not update the playlist track count
 	+ Fixed an issue where pressing the Next button when at the end of the playlist
-	  would not update the track position
+		would not update the track position
 	+ Fixed a major logic bug where importing a playlist results in a failed import
-	  of simply the last audio track and also results in a failed attempt at caching
-	  the network audio track
+		of simply the last audio track and also results in a failed attempt at caching
+		the network audio track
 		* Network caching of audio tracks after opening a playlist will begin
-		  immediately up on their addition to the playlist
+			immediately up on their addition to the playlist
 		* This issue was currently only able to be produced by opening zPlayer from
-		  a hibernation state, as multiple custom playlists can not yet be managed
+			a hibernation state, as multiple custom playlists can not yet be managed
 
 Build 11 - JoshuaDoes - February 18th, 2017 - 12:13 AM EST / 00:13 EST
 	+ Fixed an issue where the audio track position and the volume could not be
-	  changed while the audio track is paused
+		changed while the audio track is paused
 	+ Changed where certain interface elements are located
 	+ Changed logic so that all GUI events are handled on a per-event basis
-	  rather than running a check every millisecond
+		rather than running a check every millisecond
 	+ Changed logic so that the audio track position and the volume is checked
-	  via a timer rather than every millisecond
+		via a timer rather than every millisecond
 	+ Fixed an annoying issue where one of the two sliders would be selected
-	  when zPlayer opens and stay selected after using it
+		when zPlayer opens and stay selected after using it
 	+ Added support for streaming YouTube videos in an MP3 audio format by
-	  utilizing the "YouTubeInMP3" API located at
-	  [https://www.youtubeinmp3.com/api/]
+		utilizing the "YouTubeInMP3" API located at
+		[https://www.youtubeinmp3.com/api/]
 	+ Added logic so that any new additions to services (including the new
-	  YouTube streaming support) will display their icons under the titlebar
-	  when an audio stream is played from their site
+		YouTube streaming support) will display their icons under the titlebar
+		when an audio stream is played from their site
 	+ Fixed a logic bug where the volume change was being used to detect
-	  errors in the creation of an audio stream rather than using the audio
-	  stream creation itself
+		errors in the creation of an audio stream rather than using the audio
+		stream creation itself
 	+ Fixed logic to specifically require "http://", "https://", or "ftp://"
 	+ Added the current date and time to debug logs (only available by
-	  running the program from source)
+		running the program from source)
 	+ Added a proper implementation of network caching for network audio
-	  tracks
+		tracks
 		* Pressing the Play button while on a track number that is not yet
-		  finished being cached will not play the track and will display
-		  the current percentage as a notice
+			finished being cached will not play the track and will display
+			the current percentage as a notice
 		* Once a network track is fully cached, the user will be notified
-		  in a notice
+			in a notice
 		* This quite literally took hours to do properly and bug-free, and
-		  I just figured I should point out that I am very proud of myself
-		  for this
+			I just figured I should point out that I am very proud of myself
+			for this
 	+ Added re-caching of network audio tracks for when a playlist is
-	  imported, especially after opening zPlayer from hibernation
+		imported, especially after opening zPlayer from hibernation
 	+ Added the current track number out of how many tracks are available
-	  in the current playlist with the total percentage of how available
-	  the current track is
+		in the current playlist with the total percentage of how available
+		the current track is
 		* The total percentage is updated live if the currently selected
-		  track is being cached in the background
+			track is being cached in the background
 
 Build 10 - JoshuaDoes - February 16th, 2017 - 12:06 AM EST / 00:06 EST
 	+ Added new icons to replace some of the old ones, giving more space to click
-	  on the icons
+		on the icons
 		* All icons were replaced with full-white icons as to be custom-colored
-		  programatically
+			programatically
 	+ Added method to resize the displayed icons programatically from 64x64 to
-	  32x32 to reduce window click-and-drag lag and provide space for more content
+		32x32 to reduce window click-and-drag lag and provide space for more content
 		* Any size may be specified in the source code, this being for a planned
-		  feature involving icon scaling
+			feature involving icon scaling
 	+ Added a volume slider to control the volume of the track
 		* The volume is updated live as the slider moves
 	+ Added a position slider to control the audio position of the track
@@ -310,24 +361,24 @@ Build 10 - JoshuaDoes - February 16th, 2017 - 12:06 AM EST / 00:06 EST
 
 Build 9 - JoshuaDoes - February 13th, 2017 - 07:28 PM EST / 19:28 EST
 	+ Fixed file description to be "zPlayer" and moved current file description
-	  to file comment, thus resulting in the window in the task bar and the
-	  process in task manager no longer being the long description of the
-	  program
+		to file comment, thus resulting in the window in the task bar and the
+		process in task manager no longer being the long description of the
+		program
 	+ Fixed an issue where changing from light mode to dark mode would not set
-	  the Waxing Crescent icon of the Color Mode button to be the Waxing
-	  Gibbous and vice versa
+		the Waxing Crescent icon of the Color Mode button to be the Waxing
+		Gibbous and vice versa
 	+ Fixed an issue where pressing the stop button on the native keyboard would
-	  result in zPlayer crashing
+		result in zPlayer crashing
 	+ Fixed an issue where an audio track ending while zPlayer is not in focus
-	  would result in random modifier keys being virtually stuck and the next
-	  audio track would not play unless zPlayer was focused again
+		would result in random modifier keys being virtually stuck and the next
+		audio track would not play unless zPlayer was focused again
 	+ Fixed an issue where changing the audio track would result in the volume
-	  resetting to 100
+		resetting to 100
 	+ Added precaching for network audio tracks (refer to known bug about issue
-	  with playing network audio tracks that are still being precached)
+		with playing network audio tracks that are still being precached)
 	+ Changed functionality so that the Playlist Management button will
-	  temporarily display an AutoIt-based listing of the current playlist even
-	  if the internal DevMode flag is disabled
+		temporarily display an AutoIt-based listing of the current playlist even
+		if the internal DevMode flag is disabled
 
 Build 8 - JoshuaDoes - February 12th, 2017 - 02:10 PM EST / 14:10 EST
 	+ Updated logic to support multiple file selections in one go
@@ -336,39 +387,39 @@ Build 7 - JoshuaDoes - February 12th, 2017 - 01:17 PM EST / 13:17 EST
 	+ Added a dark theme along with a theme changer
 	+ Added internal playlist importing and exporting
 	+ Changed functionality so that the hibernate button will export the current
-	  playlist to ``hiberfil.zplay`` and the current track number to
-	  ``hiberfil.dat`` and close zPlayer, then load the playlist and track
-	  number upon next launch of zPlayer
+		playlist to ``hiberfil.zplay`` and the current track number to
+		``hiberfil.dat`` and close zPlayer, then load the playlist and track
+		number upon next launch of zPlayer
 	+ Fixed an issue where media controls via native keyboard buttons would
-	  control zPlayer only, even if the user had another app in focus or wanted
-	  to change their system volume
+		control zPlayer only, even if the user had another app in focus or wanted
+		to change their system volume
 	+ Changed functionality so that the current theme mode is always saved to
-	  ``options.dat`` upon start and exit, and is loaded upon start if it exists
+		``options.dat`` upon start and exit, and is loaded upon start if it exists
 	+ Fixed an issue where some notices were not defined
 	+ Changed functionality so that DevMode is dynamically enabled or disabled
-	  depending on whether or not zPlayer is ran from source or binary, as to
-	  help with performance for users who will not need to see the console logs
+		depending on whether or not zPlayer is ran from source or binary, as to
+		help with performance for users who will not need to see the console logs
 	+ Added support for MP1, MP2, WAV, and AIFF audio codecs
 	+ Changed functionality so that the array for the playlist will only be
-	  shown if the DevMode flag is enabled
+		shown if the DevMode flag is enabled
 
 Build 6 - JoshuaDoes - February 12th, 2017 - 05:35 AM EST / 05:35 EST
 	+ Added the displaying of the volume of the current track on the same line as
-	  the audio position
+		the audio position
 	+ Added media and volume controls via native keyboard buttons
 	+ Added a work-in-progress playlist system
 	+ Changed functionality so that the next button will go to the next song in
-	  the playlist
+		the playlist
 	+ Changed functionality so that the previous button will return to the
-	  beginning of the song if the position is 3 seconds or more, else go to the
-	  previous song in the playlist
+		beginning of the song if the position is 3 seconds or more, else go to the
+		previous song in the playlist
 	+ Changed functionality so that the next button will go to the next song in
-	  the playlist, and if there is no next song then return to the beginning of
-	  the playlist and halt playback
+		the playlist, and if there is no next song then return to the beginning of
+		the playlist and halt playback
 	+ Added a shutdown button that shuts down zPlayer properly
 	+ Added a hibernate button that currently does nothing, but is planned to
-	  save the playlist to a file and exit and then resume the playlist upon
-	  next app launch
+		save the playlist to a file and exit and then resume the playlist upon
+		next app launch
 	+ Added a minimize button that minimizes the window
 	+ Added a color mode button to toggle a light theme and a dark theme
 
@@ -376,21 +427,21 @@ Build 5 - JoshuaDoes - February 12th, 2017 - 12:36 AM EST / 00:36 EST
 	+ Fixed an issue where some notices were incorrectly defined
 	+ Added the displaying of ID3 tags on the main GUI
 	+ Fixed an issue where stopping an audio track would result in the audio location
-	  being blank preventing users from playing the track from the beginning
+		being blank preventing users from playing the track from the beginning
 	+ Fixed positioning of ID3 tags, audio position, and notices to look nicer
 	+ Fixed an issue where the audio position thread's timer would stop updating the
-	  displayed audio position after the notice thread's timer unregistered itself
+		displayed audio position after the notice thread's timer unregistered itself
 
 Build 4 - JoshuaDoes - February 11th, 2017 - 11:38 PM EST / 23:38 EST
 	+ Fixed the network URL input box to also display "https://"
 	+ Fixed the network URL input box to divide URIs by "|" instead of ","
 	+ Fixed an issue where some notices were undefined
 	+ Fixed an issue where attempting to add a new track while one is currently
-	  playing and then cancelling the track addition will result in the audio
-	  location becoming blank and the current audio stream pausing
+		playing and then cancelling the track addition will result in the audio
+		location becoming blank and the current audio stream pausing
 	+ Fixed an issue where attempting to add the current track will simply
-	  pause/resume it; now, it unloads the current track and loads the new one
-	  even if it is the same track
+		pause/resume it; now, it unloads the current track and loads the new one
+		even if it is the same track
 
 Build 3 - JoshuaDoes - Saturday, February 11th, 2017 - 10:57 PM EST / 22:57 EST
 	+ Added network URL playback
@@ -398,8 +449,8 @@ Build 3 - JoshuaDoes - Saturday, February 11th, 2017 - 10:57 PM EST / 22:57 EST
 
 Build 2 - JoshuaDoes - Saturday, February 11th, 2017 - 09:55 PM EST / 21:55 EST
 	+ Fixed an issue where stopping the current audio stream and then opening a new
-	  track would trigger the position update thread but would not actually play the
-	  new audio stream
+		track would trigger the position update thread but would not actually play the
+		new audio stream
 
 Build 1 - JoshuaDoes - Saturday, February 11th, 2017 - 09:19 PM EST / 21:19 EST
 	+ Initial program
