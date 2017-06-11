@@ -30,6 +30,8 @@
 		network stream
 	- Implement YouTube-DL to replace current network handling
 	- Add file tag/info viewer/editor
+	- Add informative text that appears in the notification text area to explain what
+		something is when you hover over it with your mouse
 
 --- KNOWN BUGS ---
 	- You must triple-click an entry in the playlist view to play it
@@ -48,6 +50,24 @@
 	* Please report any and all bugs found to me
 
 --- CHANGELOG ---
+Build 21 - JoshuaDoes - June 10th, 2017 - 09:21 PM EST / 21:21 PM
+	+ Fixed an issue where adding new tracks to the playlist while the playlist view was
+		active and the window was maxmized would result in zPlayer restoring and then
+		maximizing again
+	+ Fixed an issue where deleting entries from the playlist would not be reflected in
+		the playlist view
+	+ Changed frequency from 44100 Hz to 48000 Hz for better audio quality 
+	+ Fixed an issue where adding one or more entries to the playlist and then deleting
+		them all, then attempting to delete or play a non-existant entry, would result in an
+		array out-of-bounds error caused by invalid handling of playlist entry deletion
+	+ Added multiple out-of-bounds checks to ensure functions requiring entries in the
+		playlist would not be ran without there first being an entry in the playlist
+	+ Replaced "Unknown" with "?" in all audio tag reads as the default if none exist
+	+ Added checks to ensure the GUI wasn't being redrawn when it didn't need to be,
+		preventing most unusual flickering on slower systems
+	+ Fixed an issue where displaying the proper audio position was being handled
+		incorrectly
+
 Build 20 - JoshuaDoes - June 9th, 2017 - 11:17 PM EST / 23:17 EST
 	*** I've officially forgotten all about this changelog so I'm just going to
 		cross-reference with the previous build for these changes, please

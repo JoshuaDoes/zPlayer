@@ -7,7 +7,7 @@
 
  AutoIt Version:	3.3.15.0 (Beta)
  Title:				zPlayer Preview
- Build Number:		20
+ Build Number:		21
  Release Format:	Proprietary Beta
  Author:			JoshuaDoes (Joshua Wickings)
  Website:			zPlayer [https://joshuadoes.com/zPlayer/]
@@ -29,11 +29,11 @@
 #Region ;Directives on how to compile and/or run zPlayer using AutoIt3Wrapper_GUI
 #AutoIt3Wrapper_Version=Beta
 #AutoIt3Wrapper_Icon=assets\icons\zPlayer.ico
-#AutoIt3Wrapper_Outfile=zPlayer Preview Build 20.exe
+#AutoIt3Wrapper_Outfile=zPlayer Preview Build 21.exe
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Play media files with a graphically clean and simple interface that users come to expect from their favorite media players.
 #AutoIt3Wrapper_Res_Description=zPlayer Preview
-#AutoIt3Wrapper_Res_Fileversion=20
+#AutoIt3Wrapper_Res_Fileversion=21
 #AutoIt3Wrapper_Res_LegalCopyright=JoshuaDoes © 2017
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_HiDpi=y
@@ -100,7 +100,7 @@ AutoItSetOption("GUIOnEventMode", 1) ;Events are better than GUI message loops
 #Region ;Program constants and statics
 ;Data about the current program
 Global Const $Program_Title = "zPlayer Preview" ;Program title
-Global Const $Program_Build = 20 ;Program build number
+Global Const $Program_Build = 21 ;Program build number
 If Not @Compiled Then ;If running from a development environment,
 	Global $DevMode = 1 ;Enable developer and debug features
 ElseIf @Compiled Then ;Else if running from a compiled executable,
@@ -297,10 +297,12 @@ Global $GUI_Child[1]
 $GUI_Child[0] = Null
 Global $hItem = Null
 
+z_Child_OpenPlaylist() ;Open the playlist by default, replace soon when adding in option saving
+
 If $DevMode Then z_Notice("DEVMODE_MEMORY_LARGE")
 
 _BASS_STARTUP(@ScriptDir & "\BASS.dll")
-_BASS_Init(0, -1, 44100)
+_BASS_Init(0, -1, 48000)
 If @error Then
 	z_Notice("BASS_INIT_FAILED", @error)
 EndIf
@@ -414,6 +416,7 @@ While 1
 						$iNewSliderAudioPosition = GUICtrlRead($GUI_AudioPositionSlider_Handle)
 						If $iOldSliderAudioPosition <> $iNewSliderAudioPosition Then
 							z_Audio_SetPosition(GUICtrlRead($GUI_AudioPositionSlider_Handle))
+							$iOldSliderAudioPosition = $iNewSliderAudioPosition
 						EndIf
 					Until Not _IsPressed(1) Or _IsPressed(2)
 					_WinAPI_SetFocus(WinGetHandle($GUI_PlayPauseResume_Handle))
@@ -536,11 +539,11 @@ Func z_Playlist_AddFile_Internal($sFile)
 			Return SetError(1, 0, False)
 		EndIf
 		$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-		$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,Unknown)") ;The track number within the album
-		$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,Unknown)") ;The artist who made the track
-		$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,Unknown)") ;The title of the track
-		$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,Unknown)") ;The album the track belongs to
-		$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,Unknown)") ;The year of the track's release
+		$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
+		$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
+		$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
+		$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
+		$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
 		$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
 	ElseIf z_DataCheck_ContainsVideoExtension($aPlaylist[$iEntryPosition][0]) Then
 		z_Playback_Stop()
@@ -549,7 +552,12 @@ Func z_Playlist_AddFile_Internal($sFile)
 	EndIf
 	z_Service_Identify()
 	z_DataUpdate()
-	z_OpenChildGUI($iCurrentGUI, True)
+	If $iCurrentGUI = 3 Then
+		$aPlaylist[$iEntryPosition][9] = GUICtrlCreateListViewItem(($iEntryPosition + 1) & "|" & $aPlaylist[$iEntryPosition][4] & "|" & $aPlaylist[$iEntryPosition][5] & "|" & $aPlaylist[$iEntryPosition][6] & "|" & $aPlaylist[$iEntryPosition][3] & "|" & $aPlaylist[$iEntryPosition][7] & "|" & $aPlaylist[$iEntryPosition][0], $GUI_Child[0])
+		GUICtrlSetOnEvent($aPlaylist[$iEntryPosition][9], "z_Child_PlaylistEvent")
+	Else
+		z_OpenChildGUI($iCurrentGUI, True)
+	EndIf
 	AdlibRegister("z_DataUpdate", 1000)
 EndFunc
 Func z_Playlist_AddURL_Internal($sURL)
@@ -610,11 +618,11 @@ Func z_Playlist_AddURL_Internal($sURL)
 					EndIf
 				EndIf
 				$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,Unknown)") ;The track number within the album
-				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,Unknown)") ;The artist who made the track
-				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,Unknown)") ;The title of the track
-				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,Unknown)") ;The album the track belongs to
-				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,Unknown)") ;The year of the track's release
+				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
+				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
+				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
+				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
+				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
 				$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
 			ElseIf z_DataCheck_ContainsAudioExtension($aPlaylist[$iEntryPosition][0]) Then
 				$aPlaylist[$iEntryPosition][1] = _BASS_StreamCreateURL($sNewFileLocation, 0, $BASS_STREAM_RESTRATE) ;The stream to use for playing the audio
@@ -643,11 +651,11 @@ Func z_Playlist_AddURL_Internal($sURL)
 					Return SetError(1, 0, False)
 				EndIf
 				$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,Unknown)") ;The track number within the album
-				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,Unknown)") ;The artist who made the track
-				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,Unknown)") ;The title of the track
-				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,Unknown)") ;The album the track belongs to
-				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,Unknown)") ;The year of the track's release
+				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
+				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
+				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
+				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
+				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
 				$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
 			ElseIf z_DataCheck_ContainsVideoExtension($aPlaylist[$iEntryPosition][0]) Then
 				;Add video to playlist and specify tags
@@ -730,12 +738,22 @@ Func z_Playlist_DeleteEntry()
 	;Simply because I refuse to add some really long parsing method right now, I'm sticking to this
 	;However, I soon plan to break free from Array.au3 and stick to internal methods
 	;If I have to, I'll copy this function raw from the UDF and drop it in Snippets
-	z_Playback_Stop()
-	_ArrayDelete($aPlaylist, $iCurrentTrack)
-	If $iCurrentTrack >= UBound($aPlaylist) Then $iCurrentTrack -= 1
-	z_Service_Identify()
-	z_DataUpdate()
-	AdlibUnRegister("z_DataUpdate")
+	If UBound($aPlaylist) Then
+		z_Playback_Stop()
+		If $iCurrentGUI = 3 Then GUICtrlDelete($aPlaylist[$iCurrentTrack][9])
+		_ArrayDelete($aPlaylist, $iCurrentTrack)
+		If UBound($aPlaylist) Then
+			$iCurrentTrack -= 1
+		Else
+			$iCurrentTrack = 0
+		EndIf
+		z_Service_Identify()
+		z_DataUpdate()
+		AdlibUnRegister("z_DataUpdate")
+	Else
+		$iCurrentTrack = 0
+		AdlibUnRegister("z_DataUpdate")
+	EndIf
 EndFunc
 Func z_Playlist_ToggleRepeat()
 	If $mSettings["Repeat"] Then
@@ -989,19 +1007,25 @@ Func z_Audio_GetPosition($bReturnBytes = False)
 	EndIf
 EndFunc
 Func z_Audio_SetPosition($iNewAudioPosition, $bSetBytes = False)
-	If $bSetBytes Then
-		_BASS_ChannelSetPosition($aPlaylist[$iCurrentTrack][1], $iNewAudioPosition, $BASS_POS_BYTE)
-	Else
-		_BASS_ChannelSetPosition($aPlaylist[$iCurrentTrack][1], _BASS_ChannelSeconds2Bytes($aPlaylist[$iCurrentTrack][1], $iNewAudioPosition), $BASS_POS_BYTE)
+	If UBound($aPlaylist) Then
+		If $bSetBytes Then
+			_BASS_ChannelSetPosition($aPlaylist[$iCurrentTrack][1], $iNewAudioPosition, $BASS_POS_BYTE)
+			GUICtrlSetData($GUI_AudioPosition_Handle, Seconds2Time(Ceiling(_BASS_ChannelBytes2Seconds($aPlaylist[$iCurrentTrack][1], _BASS_ChannelGetPosition($aPlaylist[$iCurrentTrack][1], $BASS_POS_BYTE)))))
+		Else
+			_BASS_ChannelSetPosition($aPlaylist[$iCurrentTrack][1], _BASS_ChannelSeconds2Bytes($aPlaylist[$iCurrentTrack][1], $iNewAudioPosition), $BASS_POS_BYTE)
+			GUICtrlSetData($GUI_AudioPosition_Handle, Seconds2Time(Ceiling(_BASS_ChannelBytes2Seconds($aPlaylist[$iCurrentTrack][1], _BASS_ChannelGetPosition($aPlaylist[$iCurrentTrack][1], $BASS_POS_BYTE)))))
+		EndIf
 	EndIf
 EndFunc
 Func z_Audio_GetLength($bReturnBytes = False)
-	Local $bLength = _BASS_ChannelGetLength($aPlaylist[$iCurrentTrack][1], $BASS_POS_BYTE)
-	If $bReturnBytes Then
-		Return $bLength
-	Else
-		Local $iLength = _BASS_ChannelBytes2Seconds($aPlaylist[$iCurrentTrack][1], $bLength)
-		Return $iLength
+	If UBound($aPlaylist) Then
+		Local $bLength = _BASS_ChannelGetLength($aPlaylist[$iCurrentTrack][1], $BASS_POS_BYTE)
+		If $bReturnBytes Then
+			Return $bLength
+		Else
+			Local $iLength = _BASS_ChannelBytes2Seconds($aPlaylist[$iCurrentTrack][1], $bLength)
+			Return $iLength
+		EndIf
 	EndIf
 EndFunc
 Func z_Audio_GetVolume()
@@ -1025,8 +1049,8 @@ EndFunc
 Volatile Func z_DataUpdate()
 	AdlibUnRegister("z_DataUpdate")
 	If UBound($aPlaylist) Then
-		GUICtrlSetData($GUI_AudioPosition_Handle, Seconds2Time(Round(z_Audio_GetPosition())))
-		GUICtrlSetData($GUI_AudioLength_Handle, Seconds2Time(Round(z_Audio_GetLength())))
+		If GUICtrlRead($GUI_AudioPosition_Handle) <> Seconds2Time(Ceiling(z_Audio_GetPosition())) Then GUICtrlSetData($GUI_AudioPosition_Handle, Seconds2Time(Ceiling(z_Audio_GetPosition())))
+		If GUICtrlRead($GUI_AudioLength_Handle) <> Seconds2Time(Ceiling(z_Audio_GetLength())) Then GUICtrlSetData($GUI_AudioLength_Handle, Seconds2Time(Ceiling(z_Audio_GetLength())))
 		Local $sTrackStatus
 		Switch $aPlaylist[$iCurrentTrack][8]
 			Case 0
@@ -1042,7 +1066,7 @@ Volatile Func z_DataUpdate()
 			Case Else
 				$sTrackStatus = "Unknown status"
 		EndSwitch
-		GUICtrlSetData($GUI_TrackPosition_Handle, ($iCurrentTrack + 1) & "/" & (UBound($aPlaylist)) & " - " & $sTrackStatus)
+		If GUICtrlRead($GUI_TrackPosition_Handle) <> (($iCurrentTrack + 1) & "/" & (UBound($aPlaylist)) & " - " & $sTrackStatus) Then GUICtrlSetData($GUI_TrackPosition_Handle, ($iCurrentTrack + 1) & "/" & (UBound($aPlaylist)) & " - " & $sTrackStatus)
 		If $aPlaylist[$iCurrentTrack][8] = 1 Then
 			If Not _WinAPI_GetFocus() = GUICtrlGetHandle($GUI_VolumeSlider_Handle) Then
 				Local $iCurrentAudioVolume = Round(_BASS_ChannelGetVolume($aPlaylist[$iCurrentTrack][1]))
@@ -1126,6 +1150,14 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 		EndIf
 		Switch $iGUI
 			Case 0 ;Close whichever child GUI is currently open
+				If $iCurrentGUI = 3 Then
+					If UBound($aPlaylist) Then
+						For $i = 0 To UBound($aPlaylist) - 1
+							$aPlaylist[$i][9] = ""
+						Next
+					EndIf
+				EndIf
+				$iCurrentGUI = 0
 				Return
 			Case 1 ;View, either album art for audio or video for video
 				If UBound($aPlaylist) Then
@@ -1134,6 +1166,7 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 					Else
 						ReDim $GUI_Child[1]
 						If z_DataCheck_ContainsVideoExtension($aPlaylist[$iCurrentTrack][0]) Then
+							$iCurrentGUI = 1
 							$GUI_Child[0] = GUICreate($mSettings["Window Title"], 778, 225, 2, 85, $WS_POPUPWINDOW)
 							;DSEngine_LoadFile($aPlaylist[$iCurrentTrack][0], $GUI_Child[0])
 						EndIf
@@ -1147,6 +1180,7 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 					Return SetError(1, 0, False)
 				EndIf
 				ReDim $GUI_Child[1]
+				$iCurrentGUI = 2
 				$GUI_Child[0] = GUICtrlCreateListView("Drive", 2, 85, 778, 225)
 				GUICtrlSetBkColor($GUI_Child[0], $mSettings["GUI Background Color"])
 				GUICtrlSetColor($GUI_Child[0], $mSettings["GUI Text Color"])
@@ -1159,6 +1193,7 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 				z_SetColors($mSettings["Theme"])
 			Case 3 ;Playlist Management
 				ReDim $GUI_Child[1]
+				$iCurrentGUI = 3
 				$GUI_Child[0] = GUICtrlCreateListView("#|Artist|Title|Album|Track|Year|Source", 2, 85, 778, 225)
 				GUICtrlSetBkColor($GUI_Child[0], $mSettings["GUI Background Color"])
 				GUICtrlSetColor($GUI_Child[0], $mSettings["GUI Text Color"])
