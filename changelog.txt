@@ -50,6 +50,22 @@
 	* Please report any and all bugs found to me
 
 --- CHANGELOG ---
+Build 22 - JoshuaDoes - June 12th, 2017 - 10:32 AM EST / 10:32 EST
+	+ Changing the "Changing position..." text to "Seeking..." in the bottom right when
+		seeking through the current track
+	+ Fixed an issue where seeking while the track was paused or stopped would result in
+		the track playing after seeking to the desired position
+	+ Fixed an issue where stopping the track would prevent the ability to seek to the desired
+		position
+	+ Fixed an issue where the audio position slider could be dragged away from the 0 position
+		before any tracks were ever added to the playlist
+	+ Added preparations for custom theme support
+	+ Fixed a startup speed impactor by removing a theme re-apply during startup
+	+ Re-added the light theme
+	+ Fixed an issue where the GUI would slowly repaint every individual control in front of the
+		user instead of repainting everything silently and then instantly switching to the finished
+		product (to look sleek and fast of course, because realism doesn't appeal to people)
+
 Build 21 - JoshuaDoes - June 10th, 2017 - 09:21 PM EST / 21:21 PM
 	+ Fixed an issue where adding new tracks to the playlist while the playlist view was
 		active and the window was maxmized would result in zPlayer restoring and then
