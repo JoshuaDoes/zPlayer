@@ -7,7 +7,7 @@
 
  AutoIt Version:	3.3.15.0 (Beta)
  Title:				zPlayer Preview
- Build Number:		21
+ Build Number:		22
  Release Format:	Proprietary Beta
  Author:			JoshuaDoes (Joshua Wickings)
  Website:			zPlayer [https://joshuadoes.com/zPlayer/]
