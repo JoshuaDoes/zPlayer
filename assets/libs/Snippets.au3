@@ -33,7 +33,7 @@ Func YouTube_Get_ArtURL($sYouTubeWatchURL)
 	If Not $VideoID Then
 		Return SetError(1, 0, False)
 	Else
-		Return SetError(0, $sYouTubeWatchURL, "https://img.youtube.com/vi/" & $VideoID & "/default.jpg")
+		Return SetError(0, $sYouTubeWatchURL, "https://img.youtube.com/vi/" & $VideoID & "/maxresdefault.jpg")
 	EndIf
 EndFunc
 #EndRegion
