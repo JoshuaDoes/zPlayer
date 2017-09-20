@@ -1,0 +1,47 @@
+{
+	"meta": {
+		"author": "JoshuaDoes",
+		"name": "Dark",
+		"credits": [
+			"Icons8 for the icons in use",
+			"Paint.NET for altering the icons to accomodate for zPlayer"
+		]
+	},
+	"settings": {
+		"iconType": "ico",
+		"backgroundColor": "1C1C1C",
+		"textColor": "FFFFFF"
+	},
+	"icons": {
+		"Logo": "zPlayer",
+		"Shutdown": "Shutdown",
+		"Maximize": "Maximize Window",
+		"Restore": "Restore Window",
+		"Hibernate": "Hibernate",
+		"Minimize": "Minimize Window",
+		"Theme": "Theme",
+		"AddFile": "Add File",
+		"AddURL": "Add Link",
+		"AddCD": "Add CD",
+		"Playlist": "Playlist",
+		"PlaylistImport": "Import Playlist",
+		"PlaylistExport": "Export Playlist",
+		"Previous": "Previous",
+		"Play": "Play",
+		"Pause": "Pause",
+		"Resume": "Resume",
+		"Next": "Next",
+		"Stop": "Stop",
+		"Shuffle": "Shuffle",
+		"Repeat": "Repeat",
+		"Repeat Once": "Repeat Once",
+		"Fill": "Black",
+		"YouTube": "YouTube",
+		"File": "File",
+		"Delete": "Delete",
+		"SaveFile": "Save File",
+		"View": "View",
+		"Notifications": "Notifications",
+		"Settings": "Settings"
+	}
+}

@@ -1,4 +1,0 @@
-_Bass_Tags_Startup()
-_Bass_Tags_Read ()
-_Bass_Tags_GetLastErrorDesc ()
-_Bass_Tags_GetVersion ()
