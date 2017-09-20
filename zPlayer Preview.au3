@@ -48,14 +48,11 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 #include <String.au3> ;Library for strings
 #include <GDIPlus.au3> ;Library for GDI+
 #include <Misc.au3> ;Library for miscellaneous stuff
-#include "assets/libs/BASS.au3/BASS/Bass.au3" ;Library used for audio playback
-#include "assets/libs/BASS.au3/BASS/BassConstants.au3" ;Constants for BASS
-#include "assets/libs/BASS.au3/BASS_TAGS/BassTags.au3" ;Library used for ID3 tags
-#include "assets/libs/ID3_v3.4.au3" ;Library used for ID3 tags and album artwork reading/writing
-#include "assets/libs/DSEngine/DSEngine.au3" ;Library used for DirectShow playback
-#include "assets/libs/Snippets.au3" ;Library used for small function snippets from other sources
-#include "assets/libs/BorderLessWinUDF.au3" ;Library used for borderless resizeable GUIs
-#include "assets/libs/JSON.au3" ;Library used for JSON data management
+#include "libs/BASS.au3/BASS/Bass.au3" ;Library used for audio playback
+#include "libs/BASS.au3/BASS/BassConstants.au3" ;Constants for BASS
+#include "libs/BASS.au3/BASS_TAGS/BassTags.au3" ;Library used for ID3 tags
+#include "libs/BorderLessWinUDF.au3" ;Library used for borderless resizeable GUIs
+#include "libs/JSON/JSON.au3" ;Library used for JSON
 #EndRegion ;Required libraries for program functionality
 
 #Region ;Initiation sequence
