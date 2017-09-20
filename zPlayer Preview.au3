@@ -4,7 +4,7 @@
 
 	AutoIt Version: 3.3.15.0
 	Title: zPlayer Preview
-	Build Number: 23
+	Build Number: 24
 	Release Format: Proprietary Beta
 	Author: JoshuaDoes (Joshua Wickings)
 	Website: zPlayer [https://joshuadoes.com/zPlayer/]
@@ -22,11 +22,11 @@
 #Region ;Directives on how to compile and/or run zPlayer using AutoIt3Wrapper_GUI
 #AutoIt3Wrapper_Version=Beta
 #AutoIt3Wrapper_Icon=zPlayer.ico
-#AutoIt3Wrapper_Outfile=zPlayer Preview Build 23.exe
+#AutoIt3Wrapper_Outfile=zPlayer Preview Build 24.exe
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Play media files with a graphically clean and simple interface that users come to expect from their favorite media players.
 #AutoIt3Wrapper_Res_Description=zPlayer Preview
-#AutoIt3Wrapper_Res_Fileversion=23
+#AutoIt3Wrapper_Res_Fileversion=24
 #AutoIt3Wrapper_Res_LegalCopyright=JoshuaDoes © 2017
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_HiDpi=y
@@ -52,6 +52,7 @@
 ;#include "assets/libs/DSEngine/DSEngine.au3" ;Library used for DirectShow playback
 #include "assets/libs/Snippets.au3" ;Library used for small function snippets from other sources
 #include "assets/libs/BorderLessWinUDF.au3" ;Library used for borderless resizeable GUIs
+#include "assets/libs/Google API/Google API.au3" ;Library used for various Google APIs
 #EndRegion ;Required libraries for program functionality
 
 AutoItSetOption("GUIOnEventMode", 1) ;Events are better than GUI message loops
@@ -60,7 +61,7 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 #Region ;Program constants and statics
 ;Data about the current program
 Global $Program_Title = "zPlayer Preview" ;Program title
-Global $Program_Build = 23 ;Program build number
+Global $Program_Build = 24 ;Program build number
 Global $Program_Copyright = "JoshuaDoes © 2017"
 Global $Program_Notice = "This software is still in a developmental state. Features may be added or removed without notice. Warranty is neither expressed nor implied for the system in which you run this software."
 Global $Program_AutoItVersion = @AutoItVersion
@@ -112,6 +113,7 @@ Global $aPlaylist[0][11]
 ;An array of all notifications: [Notification number][Date, Time, Text]
 Global $aNotifications[0][3]
 ;HotKeySet("G", "z_Playlist_ToggleDev")
+HotKeySet("^f", "z_Child_YouTubeSearch")
 Global $sRegistryLocation = "HKEY_CURRENT_USER\Software\JoshuaDoes\zPlayer" ;Registry location for saving values
 ;A map of all current settings
 Global $mSettings[]
@@ -250,6 +252,11 @@ $Theme = z_LoadThemes($ThemesDir, $Theme)
 If Not IsMap($Theme) Then
 	MsgBox(0, $Program_Title & " - " & $Program_Build & " | ERROR", "There was an error attempting to find the default and/or custom themes. Make sure `" & $ThemesDir & "` is accessible to zPlayer and try again. If the error persists, delete the folder `" & $ThemesDir & "` and try again so that zPlayer may attempt to install the default themes." & @CRLF)
 	Exit
+EndIf
+
+If Not MapExists($Theme, $sCurrentTheme) Then
+	$aThemes = MapKeys($Theme)
+	$sCurrentTheme = $aThemes[0]
 EndIf
 
 _GDIPlus_Startup()
@@ -516,7 +523,7 @@ Func z_Playlist_AddURL()
 		If StringInStr(ClipGet(), "http://", 0, 1, 1) Or StringInStr(ClipGet(), "https://", 0, 1, 1) Or StringInStr(ClipGet(), "ftp://", 0, 1, 1) Then
 			$sTempClipboard = ClipGet()
 		EndIf
-		Local $sNewFileLocation = InputBox("Enter a network URL to an audio file...", "Please enter a network URL to an audio file below." & @CRLF & @CRLF & "Supported URIs: http:// | https:// | ftp://", $sTempClipboard, " M")
+		Local $sNewFileLocation = InputBox("Enter a network URL to an audio file or audio stream...", "Please enter a network URL to an audio file or audio stream below." & @CRLF & @CRLF & "Supported URIs: http:// | https:// | ftp://", $sTempClipboard, " M")
 		If Not $sNewFileLocation Then Return
 		z_Playlist_AddURL_Internal($sNewFileLocation)
 		z_Service_Identify()
@@ -555,11 +562,11 @@ Func z_Playlist_AddFile_Internal($sFile)
 			Return SetError(1, 0, False)
 		EndIf
 		$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-		$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
-		$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
-		$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
-		$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
-		$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
+		$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,)") ;The track number within the album
+		$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,)") ;The artist who made the track
+		$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,)") ;The title of the track
+		$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,)") ;The album the track belongs to
+		$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,)") ;The year of the track's release
 		$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
 	ElseIf z_DataCheck_ContainsVideoExtension($aPlaylist[$iEntryPosition][0]) Then
 		z_Playback_Stop()
@@ -604,6 +611,7 @@ Func z_Playlist_AddURL_Internal($sURL)
 							z_Notification("ERROR_OPENING_FILE")
 						Case $BASS_ERROR_FILEFORM
 							z_Notification("ERROR_FILE_FORMAT")
+							ConsoleWrite($sNewFileLocation & @CRLF)
 						Case $BASS_ERROR_CODEC
 							z_Notification("ERROR_AUDIO_CODEC")
 						Case $BASS_ERROR_FORMAT
@@ -629,14 +637,28 @@ Func z_Playlist_AddURL_Internal($sURL)
 					EndIf
 				EndIf
 				$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
-				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
-				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
-				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
-				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
+				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,)") ;The track number within the album
+				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,)") ;The artist who made the track
+				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,)") ;The title of the track
+				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,)") ;The album the track belongs to
+				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,)") ;The year of the track's release
 				$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
+			ElseIf StringInStr($aPlaylist[$iEntryPosition][0], "youtube.com/playlist?list=") Then
+				Local $sPlaylistID = StringRight($aPlaylist[$iEntryPosition][0], 34) ;As far as I can tell, the character count is consistent across all playlists
+				Local $aSearchResults = YouTube_Playlist_GetVideos("AIzaSyAac-x77uNVpTCpsXkxF-wH9CRVnAqGk6c", $sPlaylistID, 50)
+				If @error Then
+					Switch @error
+						Case 1
+							z_Notification("YT_PLAYLIST_FAIL")
+						Case 2
+							z_Notification("YT_PLAYLIST_NOTFOUND")
+						Case Else
+							z_Notification("YT_PLAYLIST_FATAL_UNKNOWN")
+					EndSwitch
+				Else
+					z_OpenChildGUI(8, True, $aSearchResults)
+				EndIf
 			ElseIf StringInStr($aPlaylist[$iEntryPosition][0], "soundcloud.com") Then
-
 ;				https://soundcloud.com/wahyusynth/jarrod-alonge-pray-for-progress-bring-me-the-horizon-parody
 				Local $sSoundCloudHTML = BinaryToString(InetRead($aPlaylist[$iEntryPosition][0]))
 				Local $aSoundCloud_Track = _StringBetween($sSoundCloudHTML, '"urn":"soundcloud:tracks:', '"')
@@ -673,7 +695,6 @@ Func z_Playlist_AddURL_Internal($sURL)
 				Else
 					z_Notification("SOUNDCLOUD_FAIL")
 				EndIf
-
 			ElseIf z_DataCheck_ContainsAudioExtension($aPlaylist[$iEntryPosition][0]) Then
 				$aPlaylist[$iEntryPosition][1] = _BASS_StreamCreateURL($sNewFileLocation, 0, $BASS_STREAM_RESTRATE) ;The stream to use for playing the audio
 				If @error Then
@@ -701,11 +722,11 @@ Func z_Playlist_AddURL_Internal($sURL)
 					Return SetError(1, 0, False)
 				EndIf
 				$aPlaylist[$iEntryPosition][2] = True ;Whether or not the audio is ready to be played
-				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,?)") ;The track number within the album
-				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,?)") ;The artist who made the track
-				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,?)") ;The title of the track
-				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,?)") ;The album the track belongs to
-				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,?)") ;The year of the track's release
+				$aPlaylist[$iEntryPosition][3] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TRCK,%TRCK,)") ;The track number within the album
+				$aPlaylist[$iEntryPosition][4] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ARTI,%ARTI,)") ;The artist who made the track
+				$aPlaylist[$iEntryPosition][5] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%TITL,%TITL,)") ;The title of the track
+				$aPlaylist[$iEntryPosition][6] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%ALBM,%ALBM,)") ;The album the track belongs to
+				$aPlaylist[$iEntryPosition][7] = _Bass_Tags_Read($aPlaylist[$iEntryPosition][1], "%IFV2(%YEAR,%YEAR,)") ;The year of the track's release
 				$aPlaylist[$iEntryPosition][8] = 0 ;Flag-based status of the stream
 			ElseIf z_DataCheck_ContainsVideoExtension($aPlaylist[$iEntryPosition][0]) Then
 				;Add video to playlist and specify tags
@@ -726,10 +747,37 @@ Func z_Playlist_AddURL_Internal($sURL)
 	EndIf
 EndFunc   ;==>z_Playlist_AddURL_Internal
 Func z_Playlist_Import()
-	Local $sFile = FileOpenDialog("Select a playlist...", @UserProfileDir & "\Music", $ImportPlaylistFormatFilter, $FD_FILEMUSTEXIST, "", $GUI_Main_Handle) ;Later I'll implement multiple playlists
+	If _IsPressed(11) Then
+		Local $sUsage = "Enter the URL to the YouTube playlist in which you wish to import." & @CRLF & @CRLF & _
+						"At this time, only public playlists are supported."
+		Local $sPlaylistURL = InputBox("YouTube Playlist Import", $sUsage, "", " M", 500, 160)
+		;https://www.youtube.com/playlist?list=PLDJpD4kY8bkDzrxKi6dOGMJyxIOrnpvU1
+		If $sPlaylistURL Then
+			If StringInStr($sPlaylistURL, "youtube.com/playlist?list=") Then
+				Local $sPlaylistID = StringRight($sPlaylistURL, 34) ;As far as I can tell, the character count is consistent across all playlists
+				Local $aSearchResults = YouTube_Playlist_GetVideos("AIzaSyAac-x77uNVpTCpsXkxF-wH9CRVnAqGk6c", $sPlaylistID, 50)
+				If @error Then
+					Switch @error
+						Case 1
+							z_Notification("YT_PLAYLIST_FAIL")
+						Case 2
+							z_Notification("YT_PLAYLIST_NOTFOUND")
+						Case Else
+							z_Notification("YT_PLAYLIST_FATAL_UNKNOWN")
+					EndSwitch
+				Else
+					z_OpenChildGUI(8, True, $aSearchResults)
+				EndIf
+			Else
+				z_Notification("YT_PLAYLIST_INVALIDURL")
+			EndIf
+		EndIf
+	Else
+		Local $sFile = FileOpenDialog("Select a playlist...", @UserProfileDir & "\Music", $ImportPlaylistFormatFilter, $FD_FILEMUSTEXIST, "", $GUI_Main_Handle) ;Later I'll implement multiple playlists
 
-	If Not FileExists($sFile) Then Return SetError(1, 0, False)
-	z_Playlist_Import_Internal($sFile)
+		If Not FileExists($sFile) Then Return SetError(1, 0, False)
+		z_Playlist_Import_Internal($sFile)
+	EndIf
 EndFunc   ;==>z_Playlist_Import
 Func z_Playlist_Import_Internal($sFile)
 	;References for implementing playlist formats
@@ -923,7 +971,8 @@ Func z_Playback_PlayPauseResume()
 			GUICtrlSetState($GUI_SaveFile_Handle, @SW_SHOW)
 			If $aPlaylist[$iCurrentTrack][8] = 0 Then ;No audio is playing, let's play it
 				_WinAPI_SetFocus(WinGetHandle($GUI_PlayPauseResume_Handle))
-				_BASS_ChannelSetVolume($aPlaylist[$iCurrentTrack][1], $mSettings["Volume"])
+				;_BASS_ChannelSetVolume($aPlaylist[$iCurrentTrack][1], $mSettings["Volume"])
+				z_Audio_SetVolume($mSettings["Volume"])
 				_BASS_ChannelPlay($aPlaylist[$iCurrentTrack][1], 1)
 				GUICtrlSetImage($GUI_PlayPauseResume_Handle, $Theme[$sCurrentTheme]["Pause"])
 				GUICtrlSetLimit($GUI_AudioPositionSlider_Handle, z_Audio_GetLength())
@@ -1058,19 +1107,7 @@ Func z_Playback_Stop()
 			z_Service_Identify()
 			GUICtrlSetData($GUI_ID3Tags_Handle, "No audio track is queued.")
 			If $iCurrentGUI = 1 Then
-				GUICtrlDelete($GUI_Child[0])
-				$hID3 = _ID3ReadTag($aPlaylist[$iCurrentTrack][0])
-				$aPlaylist[$iCurrentTrack][10] = _ID3GetTagField("APIC")
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					Local $aPos_Window = WinGetPos($GUI_Main_Handle)
-					Local $aPos_ID3Tags = ControlGetPos($GUI_Main_Handle, "", $GUI_ID3Tags_Handle)
-					Local $iWidth = ($aPos_Window[2] - 4)
-					Local $iHeight = ($aPos_ID3Tags[1] - 89)
-
-					$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2, 85, $iWidth, $iHeight)
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
-				EndIf
+				z_Child_View_DisplayImage()
 			EndIf
 		EndIf
 	Else
@@ -1126,48 +1163,7 @@ Func z_Playback_Previous()
 		EndIf
 
 		If $iCurrentGUI = 1 Then
-			If StringInStr($aPlaylist[$iCurrentTrack][0], "youtube.com/watch?v=", 0, 1) Then
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $sArtURL = YouTube_Get_ArtURL($aPlaylist[$iCurrentTrack][0])
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~YouTubeArt~", ".jpg", 20)
-					InetGet($sArtURL, $aPlaylist[$iCurrentTrack][10])
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_YT")
-				Else
-					z_Notification("ALBUMART_FAIL_YT")
-				EndIf
-			ElseIf StringInStr($aPlaylist[$iCurrentTrack][0], "soundcloud.com", 0, 1) Then
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $sSoundCloudHTML = BinaryToString(InetRead($aPlaylist[$iCurrentTrack][0]))
-					Local $aSoundCloud_ArtURL = _StringBetween($sSoundCloudHTML, '"artwork_url":"', '"')
-					Local $sSoundCloud_ArtURL = $aSoundCloud_ArtURL[0]
-					ConsoleWrite("Art URL: " & $sSoundCloud_ArtURL & @CRLF)
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~SoundCloudArt~", ".jpg", 20)
-					ConsoleWrite("Temp file: " & $aPlaylist[$iCurrentTrack][10] & @CRLF)
-					InetGet($sSoundCloud_ArtURL, $aPlaylist[$iCurrentTrack][10])
-					ConsoleWrite("Inet error code: " & @error & @CRLF)
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_SNDCLD")
-				Else
-					z_Notification("ALBUMART_FAIL_SNDCLD")
-				EndIf
-			Else
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $hID3 = _ID3ReadTag($aPlaylist[$iCurrentTrack][0])
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~LocalAlbumArt~", ".jpg", 20)
-					_ID3GetTagField("APIC", $aPlaylist[$iCurrentTrack][10])
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_LOC")
-				Else
-					z_Notification("ALBUMART_FAIL_LOC")
-				EndIf
-			EndIf
+			z_Child_View_DisplayImage()
 		EndIf
 	EndIf
 EndFunc   ;==>z_Playback_Previous
@@ -1216,48 +1212,7 @@ Func z_Playback_Next()
 		EndIf
 
 		If $iCurrentGUI = 1 Then
-			If StringInStr($aPlaylist[$iCurrentTrack][0], "youtube.com/watch?v=", 0, 1) Then
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $sArtURL = YouTube_Get_ArtURL($aPlaylist[$iCurrentTrack][0])
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~YouTubeArt~", ".jpg", 20)
-					InetGet($sArtURL, $aPlaylist[$iCurrentTrack][10])
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_YT")
-				Else
-					z_Notification("ALBUMART_FAIL_YT")
-				EndIf
-			ElseIf StringInStr($aPlaylist[$iCurrentTrack][0], "soundcloud.com", 0, 1) Then
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $sSoundCloudHTML = BinaryToString(InetRead($aPlaylist[$iCurrentTrack][0]))
-					Local $aSoundCloud_ArtURL = _StringBetween($sSoundCloudHTML, '"artwork_url":"', '"')
-					Local $sSoundCloud_ArtURL = $aSoundCloud_ArtURL[0]
-					ConsoleWrite("Art URL: " & $sSoundCloud_ArtURL & @CRLF)
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~SoundCloudArt~", ".jpg", 20)
-					ConsoleWrite("Temp file: " & $aPlaylist[$iCurrentTrack][10] & @CRLF)
-					InetGet($sSoundCloud_ArtURL, $aPlaylist[$iCurrentTrack][10])
-					ConsoleWrite("Inet error code: " & @error & @CRLF)
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_SNDCLD")
-				Else
-					z_Notification("ALBUMART_FAIL_SNDCLD")
-				EndIf
-			Else
-				If Not $aPlaylist[$iCurrentTrack][10] Then
-					Local $hID3 = _ID3ReadTag($aPlaylist[$iCurrentTrack][0])
-					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~LocalAlbumArt~", ".jpg", 20)
-					_ID3GetTagField("APIC", $aPlaylist[$iCurrentTrack][10])
-				EndIf
-				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-					z_Notification("ALBUMART_SUCCEED_LOC")
-				Else
-					z_Notification("ALBUMART_FAIL_LOC")
-				EndIf
-			EndIf
+			z_Child_View_DisplayImage()
 		EndIf
 	EndIf
 EndFunc   ;==>z_Playback_Next
@@ -1298,9 +1253,10 @@ Func z_Audio_GetVolume()
 	EndIf
 EndFunc   ;==>z_Audio_GetVolume
 Func z_Audio_SetVolume($iVolume)
+	$mSettings["Volume"] = $iVolume
+	GUICtrlSetData($GUI_VolumeCounter_Handle, $iVolume)
 	If UBound($aPlaylist) Then
 		_BASS_ChannelSetVolume($aPlaylist[$iCurrentTrack][1], $iVolume)
-		GUICtrlSetData($GUI_VolumeCounter_Handle, $iVolume)
 	EndIf
 EndFunc   ;==>z_Audio_SetVolume
 Func z_Audio_Play($iTrack, $iReset = 0)
@@ -1370,6 +1326,36 @@ EndFunc   ;==>z_Child_OpenSettings
 Func z_Child_OpenAbout()
 	z_OpenChildGUI(7)
 EndFunc   ;==>z_Child_OpenAbout
+Func z_Child_YouTubeSearch()
+	If WinActive($GUI_Main_Handle) Then
+		Local $sUsage = "Surround a word or phrase in quotes to filter out results that don't contain the exact word or phrase in order." & @CRLF & _
+						"Ex: ""Music Video""" & @CRLF & @CRLF & _
+						"Use the plus (+) sign to filter out results that don't contain the following word." & @CRLF & _
+						"Ex: +Raining +Tacos" & @CRLF & @CRLF & _
+						"Use the intitle operator to filter out results that don't contain the following word in the title." & @CRLF & _
+						"Ex: intitle:Chill relaxing calm"
+		Local $sQuery = InputBox("YouTube Search", $sUsage, "", " M", 500, 250)
+		If $sQuery Then
+			Local $aSearchResults = YouTube_Search("AIzaSyAac-x77uNVpTCpsXkxF-wH9CRVnAqGk6c", $sQuery, "video", 50)
+			If @error Then
+				Switch @error
+					Case 1
+						z_Notification("YT_SEARCH_FAIL")
+					Case 2
+						z_Notification("YT_SEARCH_NORESULTS")
+					Case Else
+						z_Notification("YT_SEARCH_FATAL_UNKNOWN")
+				EndSwitch
+			Else
+				z_OpenChildGUI(8, True, $aSearchResults)
+			EndIf
+		EndIf
+	Else
+		HotKeySet("^f")
+		Send("^f")
+		HotKeySet("^f", "z_Child_YouTubeSearch")
+	EndIf
+EndFunc
 Func z_Child_Playlist_SetDoubleClick()
 	$bDoubleClick = True
 	z_Child_PlaylistEvent()
@@ -1378,7 +1364,7 @@ Volatile Func z_Child_PlaylistEvent()
 	If $bDoubleClick Then
 		$bDoubleClick = False
 		$hItem = @GUI_CtrlId
-		Local $aPlaylistEntry = StringSplit(GUICtrlRead(@GUI_CtrlId), "|")
+		Local $aPlaylistEntry = StringSplit(GUICtrlRead(@GUI_CtrlId), Chr(1))
 		Local $iSelectedTrack = ($aPlaylistEntry[1] - 1)
 		If $iSelectedTrack = -1 Then
 			Return SetError(1, 0, False)
@@ -1393,11 +1379,228 @@ Volatile Func z_Child_PlaylistEvent()
 	EndIf
 	AdlibRegister("z_Child_PlaylistEvent_Reset", 750)
 EndFunc   ;==>z_Child_PlaylistEvent
+Volatile Func z_Child_YouTubeSearchEvent()
+	If $bDoubleClick Then
+		$bDoubleClick = False
+		$hItem = @GUI_CtrlId
+		Local $aSearchEntry = StringSplit(GUICtrlRead(@GUI_CtrlId), Chr(1))
+		Local $sVideoID = $aSearchEntry[1]
+		z_Playlist_AddURL_Internal("https://youtube.com/watch?v=" & $sVideoID)
+		;z_Playback_Stop()
+		;$iCurrentTrack = UBound($aPlaylist) - 1
+		;z_Playback_PlayPauseResume()
+		;_WinAPI_SetActiveWindow($GUI_PlayPauseResume_Handle)
+	Else
+		$hItem = @GUI_CtrlId
+		$bDoubleClick = True
+	EndIf
+	AdlibRegister("z_Child_YouTubeSearchEvent_Reset", 750)
+EndFunc
 Func z_Child_PlaylistEvent_Reset()
 	$bDoubleClick = False
 	$hItem = 0
 EndFunc   ;==>z_Child_PlaylistEvent_Reset
-Func z_OpenChildGUI($iGUI, $bRefresh = False)
+Func z_Child_YouTubeSearchEvent_Reset()
+	$bDoubleClick = False
+	$hItem = 0
+EndFunc   ;==>z_Child_YouTubeSearchEvent_Reset
+Func z_Child_View_PrepImage($sImagePath, $iGUIWidth, $iGUIHeight)
+	Local $hBitmap = _GDIPlus_BitmapCreateFromFile($aPlaylist[$iCurrentTrack][10])
+
+	Local $hGUI_Width = $iGUIWidth
+	Local $hGUI_Height = $iGUIHeight
+	Local $hBitmap_Width = _GDIPlus_ImageGetWidth($hBitmap)
+	Local $hBitmap_Height = _GDIPlus_ImageGetHeight($hBitmap)
+
+	If $hGUI_Width < $hBitmap_Width Or $hGUI_Height < $hBitmap_Height Then
+		Local $dRatioX = $hGUI_Width / $hBitmap_Width
+		Local $dRatioY = $hGUI_Height / $hBitmap_Height
+		Local $dRatio = $dRatioX < $dRatioY ? $dRatioX : $dRatioY
+
+		Local $hBitmap_NewWidth = $hBitmap_Width * $dRatio
+		Local $hBitmap_NewHeight = $hBitmap_Height * $dRatio
+
+		Local $hGUI_X = ($hGUI_Width - ($hBitmap_Width * $dRatio)) / 2
+		Local $hGUI_Y = ($hGUI_Height - ($hBitmap_Height * $dRatio)) / 2
+
+		_GDIPlus_ImageResize($hBitmap, $hBitmap_Width, $hBitmap_Height)
+		_GDIPlus_ImageSaveToFile($hBitmap, $aPlaylist[$iCurrentTrack][10])
+		_GDIPlus_BitmapDispose($hBitmap)
+
+		Local $aImageData[5]
+		$aImageData[0] = $hGUI_X
+		$aImageData[1] = $hGUI_Y
+		$aImageData[2] = $hBitmap_NewWidth
+		$aImageData[3] = $hBitmap_NewHeight
+		$aImageData[4] = True
+		Return $aImageData
+	Else
+		Local $hGUI_X = ($hGUI_Width - $hBitmap_Width) / 2
+		Local $hGUI_Y = ($hGUI_Height - $hBitmap_Height) / 2
+
+		_GDIPlus_BitmapDispose($hBitmap)
+
+		Local $aImageData[5]
+		$aImageData[0] = $hGUI_X
+		$aImageData[1] = $hGUI_Y
+		$aImageData[2] = $hBitmap_Width
+		$aImageData[3] = $hBitmap_Height
+		$aImageData[4] = False
+		Return $aImageData
+	EndIf
+EndFunc
+Func z_Child_View_DisplayImage()
+	;Mitigation for strange crashing where the window position can't be found
+	;Also involves the same mitigation for the position of the ID3Tags control just in case
+	Local $aPos_Window
+	Local $aPos_ID3Tags
+	Local $iCount = 0
+	Local $iAttempts = 5
+	Local $iWidth = 0
+	Local $iHeight = 0
+
+	Do
+		$aPos_Window = WinGetPos($GUI_Main_Handle)
+		$iCount += 1
+	Until IsArray($aPos_Window) Or $iCount >= $iAttempts
+
+	If $iCount >= $iAttempts Then
+		GUISetState(@SW_UNLOCK, $GUI_Main_Handle)
+		Return z_Notification("ERROR_CHILD_INTERFACE", GUIGetMsg())
+	Else
+		$iWidth = ($aPos_Window[2] - 4)
+	EndIf
+	$iCount = 0
+
+	Do
+		$aPos_ID3Tags = ControlGetPos($GUI_Main_Handle, "", $GUI_ID3Tags_Handle)
+		$iCount += 1
+	Until IsArray($aPos_ID3Tags) Or $iCount >= $iAttempts
+
+	If $iCount >= $iAttempts Then
+		GUISetState(@SW_UNLOCK, $GUI_Main_Handle)
+		Return z_Notification("ERROR_CHILD_INTERFACE", GUIGetMsg())
+	Else
+		$iHeight = ($aPos_ID3Tags[1] - 89)
+	EndIf
+	$iCount = 0
+
+	If UBound($aPlaylist) Then
+		ReDim $GUI_Child[1]
+		If z_DataCheck_ContainsVideoExtension($aPlaylist[$iCurrentTrack][0]) Then
+			$GUI_Child[0] = GUICreate($mSettings["Window Title"], 778, 225, 2, 85, $WS_POPUPWINDOW)
+			;DSEngine_LoadFile($aPlaylist[$iCurrentTrack][0], $GUI_Child[0])
+		Else
+			If StringInStr($aPlaylist[$iCurrentTrack][0], "youtube.com/watch?v=", 0, 1) Then
+				If Not $aPlaylist[$iCurrentTrack][10] Then
+					Local $sArtURL = YouTube_Get_ArtURL($aPlaylist[$iCurrentTrack][0])
+					$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~YouTubeArt~", ".jpg", 20)
+					InetGet($sArtURL, $aPlaylist[$iCurrentTrack][10])
+				EndIf
+				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
+					;[0] = X offset
+					;[1] = Y offset
+					;[2] = Width
+					;[3] = Height
+					Local $aImageData = z_Child_View_PrepImage($aPlaylist[$iCurrentTrack][10], $iWidth, $iHeight)
+
+					$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2 + $aImageData[0], 85 + $aImageData[1], $aImageData[2], $aImageData[3])
+					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
+					If $aImageData[4] Then
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
+					Else
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT)
+					EndIf
+					z_Notification("ALBUMART_SUCCEED_YT")
+				Else
+					z_Notification("ALBUMART_FAIL_YT")
+					For $i = 0 To UBound($GUI_Child) - 1
+						If ControlGetPos("", "", $GUI_Child[$i]) Then
+							GUICtrlDelete($GUI_Child[$i])
+						EndIf
+					Next
+					ReDim $GUI_Child[0]
+					z_Child_OpenPlaylist()
+					$iCurrentGUI = 3
+				EndIf
+			ElseIf StringInStr($aPlaylist[$iCurrentTrack][0], "soundcloud.com", 0, 1) Then
+				If Not $aPlaylist[$iCurrentTrack][10] Then
+					Local $sSoundCloudHTML = BinaryToString(InetRead($aPlaylist[$iCurrentTrack][0]))
+					Local $aSoundCloud_ArtURL = _StringBetween($sSoundCloudHTML, '"artwork_url":"', '"')
+					If UBound($aSoundCloud_ArtURL) Then
+						Local $sSoundCloud_ArtURL = $aSoundCloud_ArtURL[0]
+						ConsoleWrite("Art URL: " & $sSoundCloud_ArtURL & @CRLF)
+						$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~SoundCloudArt~", ".jpg", 20)
+						ConsoleWrite("Temp file: " & $aPlaylist[$iCurrentTrack][10] & @CRLF)
+						InetGet($sSoundCloud_ArtURL, $aPlaylist[$iCurrentTrack][10])
+						ConsoleWrite("Inet error code: " & @error & @CRLF)
+					Else
+						z_Notification("ALBUMART_FAIL_SNDCLD")
+						For $i = 0 To UBound($GUI_Child) - 1
+							If ControlGetPos("", "", $GUI_Child[$i]) Then
+								GUICtrlDelete($GUI_Child[$i])
+							EndIf
+						Next
+						ReDim $GUI_Child[0]
+						z_Child_OpenPlaylist()
+						$iCurrentGUI = 3
+					EndIf
+				EndIf
+				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
+					Local $aImageData = z_Child_View_PrepImage($aPlaylist[$iCurrentTrack][10], $iWidth, $iHeight)
+
+					$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2 + $aImageData[0], 85 + $aImageData[1], $aImageData[2], $aImageData[3])
+					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
+					If $aImageData[4] Then
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
+					Else
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT)
+					EndIf
+					z_Notification("ALBUMART_SUCCEED_SNDCLD")
+				Else
+					z_Notification("ALBUMART_FAIL_SNDCLD")
+					For $i = 0 To UBound($GUI_Child) - 1
+						If ControlGetPos("", "", $GUI_Child[$i]) Then
+							GUICtrlDelete($GUI_Child[$i])
+						EndIf
+					Next
+					ReDim $GUI_Child[0]
+					z_Child_OpenPlaylist()
+					$iCurrentGUI = 3
+				EndIf
+			Else
+				If Not $aPlaylist[$iCurrentTrack][10] Then
+					Local $hID3 = _ID3ReadTag($aPlaylist[$iCurrentTrack][0])
+					$aPlaylist[$iCurrentTrack][10] = StringTrimRight(_TempFile(@TempDir, "zPlayer~LocalAlbumArt~", "", 20), 1)
+					$aPlaylist[$iCurrentTrack][10] = _ID3GetTagField("APIC", 1, 0, $aPlaylist[$iCurrentTrack][10])
+				EndIf
+				If FileExists($aPlaylist[$iCurrentTrack][10]) Then
+					Local $aImageData = z_Child_View_PrepImage($aPlaylist[$iCurrentTrack][10], $iWidth, $iHeight)
+
+					$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2 + $aImageData[0], 85 + $aImageData[1], $aImageData[2], $aImageData[3])
+					GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
+					If $aImageData[4] Then
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
+					Else
+						GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT)
+					EndIf
+					z_Notification("ALBUMART_SUCCEED_LOC")
+				Else
+					z_Notification("ALBUMART_FAIL_LOC")
+					For $i = 0 To UBound($GUI_Child) - 1
+						If ControlGetPos("", "", $GUI_Child[$i]) Then
+							GUICtrlDelete($GUI_Child[$i])
+						EndIf
+					Next
+					ReDim $GUI_Child[0]
+					z_Child_OpenPlaylist()
+					$iCurrentGUI = 3
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+EndFunc
+Func z_OpenChildGUI($iGUI, $bRefresh = False, $aData = Null)
 	If $iCurrentGUI <> $iGUI Or $bRefresh = True Then
 		;		Local $bMaximised = False
 		;		If $mSettings["Size State"] Then
@@ -1410,22 +1613,24 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 				;If z_DataCheck_ContainsVideoExtension($aPlaylist[$iCurrentTrack][0]) Then
 				;	GUICtrlSetState($GUI_Child[0], @SW_HIDE)
 				;Else
-					For $i = 0 To UBound($GUI_Child) - 1
-						If IsHWnd(WinGetHandle($GUI_Child[$i])) And Not $GUI_Child[$i] = $GUI_Main_Handle Then
-							GUIDelete($GUI_Child[$i])
-						Else
-							GUICtrlDelete($GUI_Child[$i])
-						EndIf
-					Next
-					ReDim $GUI_Child[0]
-				;EndIf
-			Else
 				For $i = 0 To UBound($GUI_Child) - 1
+					If Not UBound($GUI_Child) Then ExitLoop
 					If IsHWnd(WinGetHandle($GUI_Child[$i])) And Not $GUI_Child[$i] = $GUI_Main_Handle Then
 						GUIDelete($GUI_Child[$i])
 					Else
 						GUICtrlDelete($GUI_Child[$i])
 					EndIf
+				Next
+				ReDim $GUI_Child[0]
+			Else
+				For $i = 0 To UBound($GUI_Child) - 1
+					If Not UBound($GUI_Child) Then ExitLoop
+					If IsHWnd(WinGetHandle($GUI_Child[$i])) And Not $GUI_Child[$i] = $GUI_Main_Handle Then
+						GUIDelete($GUI_Child[$i])
+					Else
+						GUICtrlDelete($GUI_Child[$i])
+					EndIf
+					ReDim $GUI_Child[0]
 				Next
 			EndIf
 		EndIf
@@ -1478,72 +1683,7 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 				EndIf
 				Return
 			Case 1 ;View, either album art for audio or a currently playing video
-				If UBound($aPlaylist) Then
-					If UBound($GUI_Child) Then
-						GUISetState(@SW_SHOW, $GUI_Child[0])
-					Else
-						ReDim $GUI_Child[1]
-						If z_DataCheck_ContainsVideoExtension($aPlaylist[$iCurrentTrack][0]) Then
-							$GUI_Child[0] = GUICreate($mSettings["Window Title"], 778, 225, 2, 85, $WS_POPUPWINDOW)
-							;DSEngine_LoadFile($aPlaylist[$iCurrentTrack][0], $GUI_Child[0])
-						Else
-							If StringInStr($aPlaylist[$iCurrentTrack][0], "youtube.com/watch?v=", 0, 1) Then
-								If Not $aPlaylist[$iCurrentTrack][10] Then
-									Local $sArtURL = YouTube_Get_ArtURL($aPlaylist[$iCurrentTrack][0])
-									$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~YouTubeArt~", ".jpg", 20)
-									InetGet($sArtURL, $aPlaylist[$iCurrentTrack][10])
-								EndIf
-								If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-									$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2, 85, $iWidth, $iHeight)
-									GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-									GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
-									z_Notification("ALBUMART_SUCCEED_YT")
-								Else
-									z_Notification("ALBUMART_FAIL_YT")
-								EndIf
-							ElseIf StringInStr($aPlaylist[$iCurrentTrack][0], "soundcloud.com", 0, 1) Then
-								If Not $aPlaylist[$iCurrentTrack][10] Then
-									Local $sSoundCloudHTML = BinaryToString(InetRead($aPlaylist[$iCurrentTrack][0]))
-									Local $aSoundCloud_ArtURL = _StringBetween($sSoundCloudHTML, '"artwork_url":"', '"')
-									If UBound($aSoundCloud_ArtURL) Then
-										Local $sSoundCloud_ArtURL = $aSoundCloud_ArtURL[0]
-										ConsoleWrite("Art URL: " & $sSoundCloud_ArtURL & @CRLF)
-										$aPlaylist[$iCurrentTrack][10] = _TempFile(@TempDir, "zPlayer~SoundCloudArt~", ".jpg", 20)
-										ConsoleWrite("Temp file: " & $aPlaylist[$iCurrentTrack][10] & @CRLF)
-										InetGet($sSoundCloud_ArtURL, $aPlaylist[$iCurrentTrack][10])
-										ConsoleWrite("Inet error code: " & @error & @CRLF)
-									Else
-										z_Notification("ALBUMART_FAIL_SNDCLD")
-										Return
-									EndIf
-								EndIf
-								If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-									$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2, 85, $iWidth, $iHeight)
-									GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-									GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
-									z_Notification("ALBUMART_SUCCEED_SNDCLD")
-								Else
-									z_Notification("ALBUMART_FAIL_SNDCLD")
-								EndIf
-							Else
-								If Not $aPlaylist[$iCurrentTrack][10] Then
-									Local $hID3 = _ID3ReadTag($aPlaylist[$iCurrentTrack][0])
-									$aPlaylist[$iCurrentTrack][10] = StringTrimRight(_TempFile(@TempDir, "zPlayer~LocalAlbumArt~", "", 20), 1)
-									$aPlaylist[$iCurrentTrack][10] = _ID3GetTagField("APIC", 1, 0, $aPlaylist[$iCurrentTrack][10])
-								EndIf
-								If FileExists($aPlaylist[$iCurrentTrack][10]) Then
-									$GUI_Child[0] = GUICtrlCreatePic($aPlaylist[$iCurrentTrack][10], 2, 85, $iWidth, $iHeight)
-									GUICtrlSetImage($GUI_Child[0], $aPlaylist[$iCurrentTrack][10])
-									GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
-									z_Notification("ALBUMART_SUCCEED_LOC")
-								Else
-									z_Notification("ALBUMART_FAIL_LOC")
-									ConsoleWrite($aPlaylist[$iCurrentTrack][10] & @CRLF)
-								EndIf
-							EndIf
-						EndIf
-					EndIf
-				EndIf
+				z_Child_View_DisplayImage()
 			Case 2 ;Add CD
 				Local $aDrives = DriveGetDrive("CDROM")
 				If @error Then
@@ -1636,6 +1776,21 @@ Func z_OpenChildGUI($iGUI, $bRefresh = False)
 				GUICtrlSetFont($GUI_Child[0], 9, 0, 0, "Segoe UI")
 				GUICtrlSetBkColor($GUI_Child[0], $Theme[$sCurrentTheme]["Settings_BackgroundColor"])
 				GUICtrlSetColor($GUI_Child[0], $Theme[$sCurrentTheme]["Settings_TextColor"])
+				z_SetTheme($mSettings["Theme"])
+			Case 8
+				ReDim $GUI_Child[1]
+				$GUI_Child[0] = GUICtrlCreateListView("Video ID" & Chr(1) & "Publisher" & Chr(1) & "Title" & Chr(1) & "Description" & Chr(1) & "Publish Date", 2, 85, $iWidth, $iHeight)
+				Sleep(500)
+				GUICtrlSetBkColor($GUI_Child[0], $Theme[$sCurrentTheme]["Settings_BackgroundColor"])
+				GUICtrlSetColor($GUI_Child[0], $Theme[$sCurrentTheme]["Settings_TextColor"])
+				GUICtrlSetResizing($GUI_Child[0], $GUI_DOCKWIDTH + $GUI_DOCKHEIGHT + $GUI_DOCKTOP + $GUI_DOCKBOTTOM + $GUI_DOCKLEFT + $GUI_DOCKRIGHT)
+				If UBound($aData) Then
+					For $i = 0 To UBound($aData) - 1
+						ReDim $GUI_Child[UBound($GUI_Child) + 1]
+						$GUI_Child[UBound($GUI_Child) - 1] = GUICtrlCreateListViewItem($aData[$i][0] & Chr(1) & $aData[$i][1] & Chr(1) & $aData[$i][2] & Chr(1) & $aData[$i][3] & Chr(1) & $aData[$i][4], $GUI_Child[0])
+						GUICtrlSetOnEvent($GUI_Child[UBound($GUI_Child) - 1], "z_Child_YouTubeSearchEvent")
+					Next
+				EndIf
 				z_SetTheme($mSettings["Theme"])
 			Case Else
 

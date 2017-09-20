@@ -21,8 +21,6 @@
 	- Add CD playback
 	- Add video playback
 	- Add Last.FM support for scrobbling tracks
-	- Add user-created themes for complete themeing of the GUI
-	- Add playlist exporting
 	- Add translation support for all the things
 	- Add a settings menu
 	- Add equalizer
@@ -34,22 +32,87 @@
 		something is when you hover over it with your mouse
 
 --- KNOWN BUGS ---
-	- You must triple-click an entry in the playlist view to play it
-	- The "save" button flickers randomly or does not draw properly
+	- You must triple-click an entry in the playlist view to play it, or delay the second click when doing a double click with accurate timing
 	- The current API being used for YouTube MP3 playback sometimes returns the
 		HTML page for conversion rather than the MP3 file itself if they don't have the
 		MP3 in their database
-	- Adding to the playlist while the playlist view is active and the window is maximized
-		will continuously restore and re-maximize the window for every entry added to
-		the playlist to compensate for me being lazy and refreshing the playlist view rather
-		than adding to it, which results in an improperly sized playlist view without this
-		on-purpose bug
-		- Sorry, will be less lazy for next release
 	- Sometimes when adding tracks, the GUI will not update until the window is moved or
 		maximized/restored
 	* Please report any and all bugs found to me
 
 --- CHANGELOG ---
+Build 24 - JoshuaDoes - September 20th, 2017 - 11:33 AM ST / 11:33 EST
+	+ Added the ability to search for YouTube videos by pressing the button combination [CTRL + F]
+	+ Added the ability to import a YouTube playlist by holding [CTRL] while pressing the Import Playlist button or adding it via the Add URL button
+	+ Copied the logic for displaying available ID3 tags to network URLs and edited the BassTags functions to accomodate
+	+ Other things that I don't recall doing, as I have not kept up with the changelog
+		- Sorry, been a couple months
+		- I'm also working on (another) rewrite that's more stable, has more checks, and is overall nicer to use and faster c:
+		- Betas for the rewrite will start soon
+		- This preview channel is permanently on a feature freeze
+		- This changelog is now irrelevant for any future releases (except in the case of bugfixes before the betas start)
+
+Build 23 - JoshuaDoes - July 24th, 2017 - 11:52 AM EST / 11:52 EST
+	+ Added the "Nolan" theme
+	+ Added functionality to dynamically scan themes directory for all new themes
+		* All folders under the theme directory must contain a "themes.properties" file detailing
+			information about the theme and the names of each icon
+	+ Modified the "Change Theme" button to switch to the new Theme Management interface,
+		which shows the current list of themes and allows you to apply a theme to the interface
+	+ Added the "View" button to switch to the new View interface, which will show the album art
+		of the current audio file (if any), or, once implemented, the currently playing video
+	+ Added the "Settings" button to switch to the new (currently empty) Settings interface, which
+		will contain a list of settings that can be edited with ease after implementation
+	+ Added the "Notifications" button to switch to the new Notifications interface, which contains
+		a list of all notifications (originally known as notices) for the current session
+	+ Changed functionality so that when a new notice is received, it is instead shown in the
+		viewable custom titlebar rather than under the current child interface
+	+ Re-organized some of the interface
+	+ Improved performance on notifications and overall startup speed
+	+ Fixed an issue where adding a new entry to the playlist while Playlist Management was not
+		open would result in the current child interface refreshing
+	+ Fixed an issue where the volume counter would not update in real time while changing the
+		volume
+	+ Fixed a major issue spanning many builds where resizing the window and then changing to
+		a different child interface would result in an invalidly sized and invalidly docked control
+		* The mitigation for this issue was only successful if the window was maximized and its
+			original state had an untouched size, but now with the issue being fixed this mitigation
+			has been (proudly) removed
+	+ Fixed a flaw in logic where removing the first entry from the playlist while other entries are
+		still present would result in the current track variable equalling negative one, which is out
+		of bounds of what the rest of zPlayer expects and immediately results in a crash when a
+		function utilizing the playlist is executed
+	+ Changed logic in selecting a playlist entry from sorting through the actual playlist array for
+		the playlist entry's visual ID to directly reading the position of the playlist array from the
+		playlist entry itself, improving the amount of time it takes to play a song from the playlist
+		view in a large playlist
+	+ Added the saving (on exit) and loading of settings from the registry at the address
+		"HKEY_CURRENT_USER\Software\JoshuaDoes\zPlayer"
+	+ Added YouTube video thumbnail loading logic for the View interface, which will load the
+		highest quality thumbnail possible
+	+ Changed functionality so that the zPlayer window defaults to the center of the screen rather
+		than an X and Y position of 20
+	- Removed automatic playback if loading a hibernation playlist
+	+ Added a check to escape the add URL function if no URL was entered rather than allow the
+		internal add URL function to fail adding a blank URL
+	+ Fixed an issue where ID3 tags containing a pipe character would result in failed attempts to
+		display playlist entries in the playlist view
+		* For a more technical explanation, AutoIt by default separates data for list views with the
+			pipe character; the simple mitigation for this was to instead use a character that normally
+			should not appear in an ID3 tag, in this case ASCII char 01 ("SOH")
+	+ Added SoundCloud support
+		* You must provide your own client ID at this time
+	+ Added logic to clean up the ID3 tags displayed above the audio position slider when the current
+		entry in the playlist is being played
+	+ Fixed a major issue in debugging where undefined notifications were displayed as nothing rather than
+		the UID used in attempt to translate to the description of the notification
+		* This occurs due to a logical mistype in which I converted the original variables to new names and
+			accidentally declared $sNotification (which should contain the description of the notification,
+			in this case it's intended to be an invalid UID message) instead of $sNotificationUID (the unique
+			identifier that is translated to a more detailed message) in the Else case
+	+ Changed the undefined notification UID text to reflect on extra data parameters passed to the UID, if
+		any, to help with debugging purposes.
+
 Build 22 - JoshuaDoes - June 12th, 2017 - 10:32 AM EST / 10:32 EST
 	+ Changing the "Changing position..." text to "Seeking..." in the bottom right when
 		seeking through the current track
@@ -72,7 +135,7 @@ Build 21 - JoshuaDoes - June 10th, 2017 - 09:21 PM EST / 21:21 PM
 		maximizing again
 	+ Fixed an issue where deleting entries from the playlist would not be reflected in
 		the playlist view
-	+ Changed frequency from 44100 Hz to 48000 Hz for better audio quality 
+	+ Changed frequency from 44100 Hz to 48000 Hz for better audio quality
 	+ Fixed an issue where adding one or more entries to the playlist and then deleting
 		them all, then attempting to delete or play a non-existant entry, would result in an
 		array out-of-bounds error caused by invalid handling of playlist entry deletion
