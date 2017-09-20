@@ -167,6 +167,7 @@ _GUI_EnableDragAndResize($GUI[0], $mGUISettings["Client Width"], $mGUISettings["
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
 
 _zPlayer_Themes_Apply($GUI, $mUserSettings["Theme"])
+If @error Then Exit MsgBox(-1, "Derp", @error)
 
 GUISetState(@SW_SHOW)
 #EndRegion
@@ -280,6 +281,8 @@ WEnd
 						$aTheme_Meta_Credits = Json_Get($oTheme_Meta, '["credits"]')
 						If @error Then
 							_zPlayer_Debug_Log("> Theme credits not found")
+							Local $aArray[0]
+							$aTheme_Meta_Credits = $aArray
 						EndIf
 						$mTheme["Credits"] = $aTheme_Meta_Credits
 						$oTheme_Settings = Json_Get($oTheme, '["settings"]')
@@ -295,14 +298,19 @@ WEnd
 						$mTheme["Icon Type"] = $sTheme_IconType
 						$sTheme_BackgroundColor = Json_Get($oTheme_Settings, '["backgroundColor"]')
 						If @error Then
-							_zPlayer_Debug_Log("> Error finding background color, backing out...")
-							ContinueLoop
+							_zPlayer_Debug_Log("> Error finding background color, using default...")
+							$sTheme_BackgroundColor = "000000"
 						EndIf
 						$mTheme["Background Color"] = $sTheme_BackgroundColor
+						$sTheme_BackgroundImage = Json_Get($oTheme_Settings, '["backgroundImage"]')
+						If @error Then
+							_zPlayer_Debug_log("> Error finding background image")
+						EndIf
+						$mTheme["Background Image"] = $sTheme_BackgroundImage
 						$sTheme_TextColor = Json_Get($oTheme_Settings, '["textColor"]')
 						If @error Then
-							_zPlayer_Debug_Log("> Error finding text color, backing out...")
-							ContinueLoop
+							_zPlayer_Debug_Log("> Error finding text color, using default...")
+							$sTheme_TextColor = "FFFFFF"
 						EndIf
 						$mTheme["Text Color"] = $sTheme_TextColor
 
@@ -379,8 +387,31 @@ WEnd
 			EndIf
 		EndFunc
 		Func _zPlayer_Themes_Apply($vHandle, $sTheme)
+			If Not UBound($vHandle) Then
+				If Not IsMap($vHandle) Then
+					If Not IsHWnd($vHandle) Then
+						If Not IsHwnd(WinGetHandle($vHandle)) Then
+							Return SetError(1, 0, False)
+						EndIf
+					EndIf
+				EndIf
+			EndIf
+			If Not $sTheme Then Return SetError(2, 0, False)
+			If Not MapExists($mThemes, $sTheme) Then Return SetError(3, 0, False)
+			Local $mTheme = $mThemes[$sTheme]
 			If IsArray($vHandle) Then
-
+				For $i = 0 To UBound($vHandle) - 1
+					If IsHWnd(WinGetHandle($vHandle[$i])) Then
+						;GUI
+						Local $sTheme_Icon = $mProgram["Theme Directory"] & "\" & $mTheme["ID"] & "\" & $mTheme["Icon: Logo"] & "." & $mTheme["Icon Type"]
+						GUISetBkColor($mThemes["Background Color"], $vHandle[$i])
+						GUISetIcon($sTheme_Icon, -1, $vHandle[$i])
+					Else
+						;Control
+						GUICtrlSetBkColor($vHandle[$i], $mThemes["Background Color"])
+						GUICtrlSetColor($vHandle[$i], $mThemes["Text Color"])
+					EndIf
+				Next
 			ElseIf IsMap($vHandle) Then
 
 			ElseIf IsHWnd($vHandle) Then
