@@ -192,13 +192,15 @@ WEnd
 		EndFunc
 	#EndRegion
 	#Region ;Theme stuff
-		Func _zPlayer_Themes__AddIcon($mTheme, $oTheme_Icons, $sIcon)
-			ConsoleWrite("-- Found icon [" & $sIcon & "]" & @CRLF)
+		Func _zPlayer_Themes__AddIcon(ByRef $mTheme, $oTheme_Icons, $sIcon)
 			If Not IsMap($mTheme) Then Return SetError(1, 0, False)
 			If Not IsObj($oTheme_Icons) Then Return SetError(2, 0, False)
 			Local $sTheme_Icon = Json_Get($oTheme_Icons, '["' & $sIcon & '"]')
 			If @error Then Return SetError(3, 0, False)
-			$mTheme["Icon_" & $sIcon] = $sTheme_Icon
+			Local $sTheme_IconLoc = $mProgram["Theme Directory"] & "\" & $mTheme["ID"] & "\" & $sTheme_Icon & "." & $mTheme["Icon Type"]
+			If Not FileExists($sTheme_IconLoc) Then Return SetError(4, 0, False)
+			$mTheme["Icon: " & $sIcon] = $sTheme_Icon
+			_zPlayer_Debug_Log("> Found icon [" & $sIcon & "] for theme [" & $mTheme["Name"] & "] at location [" & $sTheme_IconLoc & "]")
 		EndFunc
 		Func _zPlayer_Themes_Refresh($sThemesDir, ByRef $mThemes)
 			_zPlayer_Debug_Log("> Refreshing themes list...")
@@ -257,6 +259,7 @@ WEnd
 						EndIf
 						_zPlayer_Debug_Log("> Creating map to store data in...")
 						Local $mTheme[]
+						$mTheme["ID"] = $sTheme_ID
 						$oTheme_Meta = Json_Get($oTheme, '["meta"]')
 						If @error Then
 							_zPlayer_Debug_Log("> Error finding theme meta, backing out...")
@@ -289,16 +292,19 @@ WEnd
 							_zPlayer_Debug_Log("> Error finding icon type, backing out...")
 							ContinueLoop
 						EndIf
+						$mTheme["Icon Type"] = $sTheme_IconType
 						$sTheme_BackgroundColor = Json_Get($oTheme_Settings, '["backgroundColor"]')
 						If @error Then
 							_zPlayer_Debug_Log("> Error finding background color, backing out...")
 							ContinueLoop
 						EndIf
+						$mTheme["Background Color"] = $sTheme_BackgroundColor
 						$sTheme_TextColor = Json_Get($oTheme_Settings, '["textColor"]')
 						If @error Then
 							_zPlayer_Debug_Log("> Error finding text color, backing out...")
 							ContinueLoop
 						EndIf
+						$mTheme["Text Color"] = $sTheme_TextColor
 
 						$oTheme_Icons = Json_Get($oTheme, '["icons"]')
 						If @error Then
