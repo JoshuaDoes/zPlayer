@@ -167,7 +167,6 @@ _GUI_EnableDragAndResize($GUI[0], $mGUISettings["Client Width"], $mGUISettings["
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
 
 _zPlayer_Themes_Apply($GUI, $mUserSettings["Theme"])
-If @error Then Exit MsgBox(-1, "Derp", @error)
 
 GUISetState(@SW_SHOW)
 #EndRegion
