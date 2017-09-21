@@ -9,8 +9,8 @@
 	},
 	"settings": {
 		"iconType": "ico",
-		"backgroundColor": "1C1C1C",
-		"foregroundColor": "FFFFFF"
+		"backgroundColor": "0x1C1C1C",
+		"foregroundColor": "0xFFFFFF"
 	},
 	"icons": {
 		"Logo": "zPlayer",
