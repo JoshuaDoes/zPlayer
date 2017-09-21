@@ -316,12 +316,12 @@ WEnd
 							_zPlayer_Debug_log("> Error finding background image")
 						EndIf
 						$mTheme["Background Image"] = $sTheme_BackgroundImage
-						$sTheme_TextColor = Json_Get($oTheme_Settings, '["textColor"]')
+						$sTheme_foregroundColor = Json_Get($oTheme_Settings, '["foregroundColor"]')
 						If @error Then
-							_zPlayer_Debug_Log("> Error finding text color, using default...")
-							$sTheme_TextColor = "FFFFFF"
+							_zPlayer_Debug_Log("> Error finding Foreground Color, using default...")
+							$sTheme_foregroundColor = "FFFFFF"
 						EndIf
-						$mTheme["Text Color"] = $sTheme_TextColor
+						$mTheme["Foreground Color"] = $sTheme_foregroundColor
 
 						$oTheme_Icons = Json_Get($oTheme, '["icons"]')
 						If @error Then
@@ -414,13 +414,17 @@ WEnd
 						;GUI
 						_zPlayer_Debug_Log("> Styling GUI...")
 						Local $sTheme_Icon = $mTheme["Icon: Logo"]
-						GUISetBkColor($mThemes["Background Color"], $vHandle[$i])
+						GUISetBkColor($mTheme["Background Color"], $vHandle[$i])
+						_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
 						GUISetIcon($sTheme_Icon, -1, $vHandle[$i])
+						_zPlayer_Debug_Log("--> Set icon to [" & $mTheme["Icon: Logo"] & "]")
 					Else
 						;Control
 						_zPlayer_Debug_Log("> Styling control...")
-						GUICtrlSetBkColor($vHandle[$i], $mThemes["Background Color"])
-						GUICtrlSetColor($vHandle[$i], $mThemes["Text Color"])
+						GUICtrlSetBkColor($vHandle[$i], $mTheme["Background Color"])
+						_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
+						GUICtrlSetColor($vHandle[$i], $mTheme["Foreground Color"])
+						_zPlayer_Debug_Log("--> Set foreground color to [" & $mTheme["Foreground Color"] & "]")
 					EndIf
 				Next
 			ElseIf IsMap($vHandle) Then

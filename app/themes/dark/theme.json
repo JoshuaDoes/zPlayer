@@ -10,7 +10,7 @@
 	"settings": {
 		"iconType": "ico",
 		"backgroundColor": "1C1C1C",
-		"textColor": "FFFFFF"
+		"textColor": "0xFFFFFF"
 	},
 	"icons": {
 		"Logo": "zPlayer",
