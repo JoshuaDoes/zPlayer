@@ -168,13 +168,16 @@ EndIf
 #Region ;GUI Initialization
 Global $mTheme = $mThemes[$mUserSettings["Theme"]]
 
-Global $GUI[3]
-$GUI[0] = GUICreate($mGUISettings["Window Title"], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"])
-_GUI_EnableDragAndResize($GUI[0], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"], $mGUISettings["Window Shadow"])
+Global $GUI[3][2]
+$GUI[0][0] = 0 ;Normal GUI
+$GUI[0][1] = GUICreate($mGUISettings["Window Title"], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"])
+_GUI_EnableDragAndResize($GUI[0][1], $mGUISettings["Client Width"], $mGUISettings["Client Height"], 0, 0, $mGUISettings["Window Shadow"])
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
 
-$GUI[1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 20, $SS_CENTER, $GUI_WS_EX_PARENTDRAG)
-$GUI[2] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
+$GUI[1][0] = 0 ;Titlebar
+$GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 30, $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
+$GUI[2][0] = 1 ;Icon
+$GUI[2][1] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
 
 _zPlayer_Themes_Apply($GUI, $mUserSettings["Theme"])
 
@@ -410,21 +413,34 @@ WEnd
 			Local $mTheme = $mThemes[$sTheme]
 			If IsArray($vHandle) Then
 				For $i = 0 To UBound($vHandle) - 1
-					If IsHWnd(WinGetHandle($vHandle[$i])) Then
+					If IsHWnd(WinGetHandle($vHandle[$i][1])) Then
 						;GUI
-						_zPlayer_Debug_Log("> Styling GUI...")
-						Local $sTheme_Icon = $mTheme["Icon: Logo"]
-						GUISetBkColor($mTheme["Background Color"], $vHandle[$i])
-						_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
-						GUISetIcon($sTheme_Icon, -1, $vHandle[$i])
-						_zPlayer_Debug_Log("--> Set icon to [" & $mTheme["Icon: Logo"] & "]")
+						Switch $vHandle[$i][0]
+							Case 0 ;Normal GUI
+								_zPlayer_Debug_Log("> Styling GUI...")
+								Local $sTheme_Icon = $mTheme["Icon: Logo"]
+								GUISetBkColor($mTheme["Background Color"], $vHandle[$i][1])
+								_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
+								GUISetIcon($sTheme_Icon, -1, $vHandle[$i][1])
+								_zPlayer_Debug_Log("--> Set icon to [" & $mTheme["Icon: Logo"] & "]")
+							Case Else ;Unknown
+								_zPlayer_Debug_Log("> Unknown GUI type, not applying a style")
+						EndSwitch
 					Else
 						;Control
-						_zPlayer_Debug_Log("> Styling control...")
-						GUICtrlSetBkColor($vHandle[$i], $mTheme["Background Color"])
-						_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
-						GUICtrlSetColor($vHandle[$i], $mTheme["Foreground Color"])
-						_zPlayer_Debug_Log("--> Set foreground color to [" & $mTheme["Foreground Color"] & "]")
+						Switch $vHandle[$i][0]
+							Case 0 ;Titlebar
+								_zPlayer_Debug_Log("> Styling titlebar...")
+								GUICtrlSetBkColor($vHandle[$i][1], $mTheme["Background Color"])
+								_zPlayer_Debug_Log("--> Set background color to [" & $mTheme["Background Color"] & "]")
+								GUICtrlSetColor($vHandle[$i][1], $mTheme["Foreground Color"])
+								_zPlayer_Debug_Log("--> Set foreground color to [" & $mTheme["Foreground Color"] & "]")
+							Case 1 ;Icon
+								_zPlayer_Debug_Log("> Nothing to do for icon")
+								;Do nothing
+							Case Else ;Unknown
+								_zPlayer_Debug_Log("> Unknown control type, not applying a style")
+						EndSwitch
 					EndIf
 				Next
 			ElseIf IsMap($vHandle) Then
