@@ -449,6 +449,7 @@ WEnd
 				EndIf
 			EndIf
 			_zPlayer_Settings_ProcessVariables($retValue)
+			_zPlayer_Debug_Log("> Loaded setting [" & $sOption & "] with value [" & $retValue & "] from address [" & $sRegistryLocation & "]")
 			Return $retValue
 		EndFunc   ;==>_zPlayer_Settings_Load
 		Func _zPlayer_Settings_ProcessVariables(ByRef $retValue)
