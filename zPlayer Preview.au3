@@ -144,6 +144,7 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 	EndIf
 #EndRegion
 
+#cs
 If $mProgram["Debug Mode"] Then
 	_zPlayer_Debug_Log("> Listing all map keys...")
 	$aProgram = MapKeys($mProgram)
@@ -159,12 +160,18 @@ If $mProgram["Debug Mode"] Then
 		_zPlayer_Debug_Log("Key #" & ($i + 1 + UBound($aProgram) + UBound($aGUISettings)) & " (" & $aUserSettings[$i] & "): " & $mUserSettings[$aUserSettings[$i]])
 	Next
 EndIf
+#ce
 
 #Region ;GUI Initialization
-Global $GUI[1]
+Global $mTheme = $mThemes[$mUserSettings["Theme"]]
+
+Global $GUI[3]
 $GUI[0] = GUICreate($mGUISettings["Window Title"], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"])
 _GUI_EnableDragAndResize($GUI[0], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"], $mGUISettings["Window Shadow"])
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
+
+$GUI[1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 20, $SS_CENTER, $GUI_WS_EX_PARENTDRAG)
+$GUI[2] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
 
 _zPlayer_Themes_Apply($GUI, $mUserSettings["Theme"])
 
@@ -199,7 +206,7 @@ WEnd
 			If @error Then Return SetError(3, 0, False)
 			Local $sTheme_IconLoc = $mProgram["Theme Directory"] & "\" & $mTheme["ID"] & "\" & $sTheme_Icon & "." & $mTheme["Icon Type"]
 			If Not FileExists($sTheme_IconLoc) Then Return SetError(4, 0, False)
-			$mTheme["Icon: " & $sIcon] = $sTheme_Icon
+			$mTheme["Icon: " & $sIcon] = $sTheme_IconLoc
 			_zPlayer_Debug_Log("> Found icon [" & $sIcon & "] for theme [" & $mTheme["Name"] & "] at location [" & $sTheme_IconLoc & "]")
 		EndFunc
 		Func _zPlayer_Themes_Refresh($sThemesDir, ByRef $mThemes)
@@ -402,11 +409,13 @@ WEnd
 				For $i = 0 To UBound($vHandle) - 1
 					If IsHWnd(WinGetHandle($vHandle[$i])) Then
 						;GUI
-						Local $sTheme_Icon = $mProgram["Theme Directory"] & "\" & $mTheme["ID"] & "\" & $mTheme["Icon: Logo"] & "." & $mTheme["Icon Type"]
+						_zPlayer_Debug_Log("> Styling GUI...")
+						Local $sTheme_Icon = $mTheme["Icon: Logo"]
 						GUISetBkColor($mThemes["Background Color"], $vHandle[$i])
 						GUISetIcon($sTheme_Icon, -1, $vHandle[$i])
 					Else
 						;Control
+						_zPlayer_Debug_Log("> Styling control...")
 						GUICtrlSetBkColor($vHandle[$i], $mThemes["Background Color"])
 						GUICtrlSetColor($vHandle[$i], $mThemes["Text Color"])
 					EndIf
