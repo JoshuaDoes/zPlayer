@@ -48,11 +48,13 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 #include <String.au3> ;Library for strings
 #include <GDIPlus.au3> ;Library for GDI+
 #include <Misc.au3> ;Library for miscellaneous stuff
+#include <SendMessage.au3> ;Library for window management
 #include "libs/BASS.au3/BASS/Bass.au3" ;Library used for audio playback
 #include "libs/BASS.au3/BASS/BassConstants.au3" ;Constants for BASS
 #include "libs/BASS.au3/BASS_TAGS/BassTags.au3" ;Library used for ID3 tags
 #include "libs/BorderLessWinUDF.au3" ;Library used for borderless resizeable GUIs
 #include "libs/JSON/JSON.au3" ;Library used for JSON
+#include "libs/GUICtrlOnHover.au3" ;Library used to add hover effects
 #EndRegion ;Required libraries for program functionality
 
 #Region ;Initiation sequence
@@ -145,6 +147,8 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 		$mUserSettings["Theme"] = $aThemes[0]
 		_zPlayer_Settings_Save($mProgram["Registery Address User"], "Theme", $mUserSettings["Theme"])
 	EndIf
+
+	_GDIPlus_Startup()
 #EndRegion
 
 #cs
@@ -168,7 +172,8 @@ EndIf
 #Region ;GUI Initialization
 Global $mTheme = $mThemes[$mUserSettings["Theme"]]
 
-Global $GUI[3][2]
+Global $GUI[4][2]
+Global $Icons[]
 $GUI[0][0] = 0 ;Normal GUI
 $GUI[0][1] = GUICreate($mGUISettings["Window Title"], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"])
 _GUI_EnableDragAndResize($GUI[0][1], $mGUISettings["Client Width"], $mGUISettings["Client Height"], 0, 0, $mGUISettings["Window Shadow"])
@@ -178,6 +183,13 @@ $GUI[1][0] = 0 ;Titlebar
 $GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 30, $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
 $GUI[2][0] = 1 ;Icon
 $GUI[2][1] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
+$GUI[3][0] = 1
+$GUI[3][1] = GUICtrlCreatePic("", 384, 366, 32, 32)
+$Icons[$GUI[3][1] & ": Normal"] = _zPlayer_Load_Icon($mTheme["Icon: Play"])
+$Icons[$GUI[3][1] & ": Hover"] = _zPlayer_Load_Icon($mTheme["Icon: Play Hover"])
+$Icons[$GUI[3][1] & ": Click"] = _zPlayer_Load_Icon($mTheme["Icon: Play Click"])
+_SendMessage(GUICtrlGetHandle($GUI[3][1]), 0x0172, 0, $Icons[$GUI[3][1] & ": Normal"])
+_GUICtrl_OnHoverRegister($GUI[3][1], "_zPlayer_Event_Button_Hover", "_zPlayer_Event_Button_Hover", "_zPlayer_Event_Button_Click", "_zPlayer_Event_Button_Click", 0)
 
 _zPlayer_Themes_Apply($GUI, $mUserSettings["Theme"])
 
@@ -190,6 +202,33 @@ WEnd
 
 #Region ;Functions
 	Func _zPlayer_Close()
+		_zPlayer_Debug_Log("Shutting down...")
+		For $i = 0 To UBound($GUI) - 1
+			If IsHWnd(WinGetHandle($GUI[$i][1])) Then
+				;GUI
+				_zPlayer_Debug_Log("> Nothing to do for GUI")
+			Else
+				;Control
+				Switch $GUI[$i][0]
+					Case 0 ;Titlebar
+						_zPlayer_Debug_Log("> Nothing to do for titlebar")
+					Case 1 ;Icon
+						_zPlayer_Debug_Log("> Deleting icon...")
+						_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Normal"])
+						_zPlayer_Debug_Log("--> Deleted main icon bitmap")
+						If $Icons[$GUI[$i][1] & ": Hover"] Then
+							_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Hover"])
+							_zPlayer_Debug_Log("--> Deleted hover icon bitmap")
+						EndIf
+						If $Icons[$GUI[$i][1] & ": Click"] Then
+							_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Click"])
+							_zPlayer_Debug_Log("--> Deleted click icon bitmap")
+						EndIf
+					Case Else ;Unknown
+						_zPlayer_Debug_Log("> Unknown control type, doing nothing")
+				EndSwitch
+			EndIf
+		Next
 		Exit
 	EndFunc
 	#Region ;Debug stuff
@@ -205,6 +244,54 @@ WEnd
 		EndFunc
 	#EndRegion
 	#Region ;Theme stuff
+		Func _zPlayer_Event_Button_Hover($hControl, $iParam)
+			GUICtrlSetImage($hControl, "")
+
+			Local $hBitmap = 0
+
+			Switch $iParam
+				Case 1 ;Hover
+					$hBitmap = $Icons[$hControl & ": Hover"]
+				Case 2 ;Unhover
+					$hBitmap = $Icons[$hControl & ": Normal"]
+			EndSwitch
+
+			_SendMessage(GUICtrlGetHandle($hControl), 0x0172, 0, $hBitmap)
+		EndFunc
+		Func _zPlayer_Event_Button_Click($hControl, $iParam)
+			GUICtrlSetImage($hControl, "")
+
+			Local $hBitmap = 0
+
+			Switch $iParam
+				Case 1 ;Click
+					$hBitmap = $Icons[$hControl & ": Click"]
+				Case 2 ;Unclick
+					$hBitmap = $Icons[$hControl & ": Normal"]
+			EndSwitch
+
+			_SendMessage(GUICtrlGetHandle($hControl), 0x0172, 0, $hBitmap)
+		EndFunc
+		Func _zPlayer_Load_Icon($sIconPath)
+			_zPlayer_Debug_Log("> Loading icon [" & $sIconPath & "]...")
+			Local $hImage = _GDIPlus_ImageLoadFromFile($sIconPath)
+			If @error Then
+				_zPlayer_Debug_Log("> Error loading icon")
+				Return SetError(1, 0, False)
+			EndIf
+			$hImage = _GDIPlus_ImageResize($hImage, 32, 32)
+			If @error Then
+				_zPlayer_Debug_Log("> Error resizing icon")
+				Return SetError(2, 0, False)
+			EndIf
+			Local $hBitmap = _GDIPlus_BitmapCreateHBITMAPFromBitmap($hImage)
+			If @error Then
+				_zPlayer_Debug_Log("> Error creating bitmap from icon")
+				Return SetError(3, 0, False)
+			EndIf
+			_GDIPlus_ImageDispose($hImage)
+			Return $hBitmap
+		EndFunc
 		Func _zPlayer_Themes__AddIcon(ByRef $mTheme, $oTheme_Icons, $sIcon)
 			If Not IsMap($mTheme) Then Return SetError(1, 0, False)
 			If Not IsObj($oTheme_Icons) Then Return SetError(2, 0, False)
@@ -339,6 +426,16 @@ WEnd
 						_zPlayer_Themes__AddIcon($mTheme, $oTheme_Icons, "Play")
 						If @error Then
 							_zPlayer_Debug_Log("> Error finding icon [Play], backing out...")
+							ContinueLoop
+						EndIf
+						_zPlayer_Themes__AddIcon($mTheme, $oTheme_Icons, "Play Hover")
+						If @error Then
+							_zPlayer_Debug_Log("> Error finding icon [Play Hover], backing out...")
+							ContinueLoop
+						EndIf
+						_zPlayer_Themes__AddIcon($mTheme, $oTheme_Icons, "Play Click")
+						If @error Then
+							_zPlayer_Debug_Log("> Error finding icon [Play Click], backing out...")
 							ContinueLoop
 						EndIf
 						_zPlayer_Themes__AddIcon($mTheme, $oTheme_Icons, "Pause")
