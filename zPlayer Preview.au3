@@ -94,7 +94,10 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 	$mProgram["Registry Address GUI"] = $mProgram["Registry Address Main"] & "\GUI"
 	$mProgram["Registry Address User"] = $mProgram["Registry Address Main"] & "\User"
 	$mProgram["Current Installed Version"] = _zPlayer_Settings_Load($mProgram["Registry Address"], "Current Installed Version", $mProgram["Build"])
-	If $mProgram["Current Installed Version"] < $mProgram["Build"] Then _zPlayer_Settings_Upgrade($mProgram["Current Installed Version"])
+	If $mProgram["Current Installed Version"] < $mProgram["Build"] Then
+		_zPlayer_Settings_Upgrade($mProgram["Current Installed Version"])
+		_zPlayer_Settings_Save($mProgram["Registry Address"], "Current Installed Version", $mProgram["Build"])
+	EndIf
 
 	$mProgram["Install Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Install Directory", @ScriptDir & "\app")
 	$mProgram["Temp Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Temp Directory", @ScriptDir & "\app\temp")
