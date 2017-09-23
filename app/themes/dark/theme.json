@@ -9,6 +9,22 @@
 	},
 	"settings": {
 		"iconType": "ico",
+		"hoverOriginalColor": [
+			"0x1C1C1CFF",
+			"0xFFFFFFFF"
+		],
+		"hoverReplaceColor": [
+			"0x121212FF",
+			"0xFAFAFAFF"
+		],
+		"clickOriginalColor": [
+			"0x1C1C1CFF",
+			"0xFFFFFFFF"
+		],
+		"clickReplaceColor": [
+			"0x141414FF",
+			"0xFAFAFAFF"
+		]
 		"backgroundColor": "0x1C1C1C",
 		"foregroundColor": "0xFFFFFF"
 	},
