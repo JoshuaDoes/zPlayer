@@ -54,7 +54,8 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 #include "libs/BASS.au3/BASS_TAGS/BassTags.au3" ;Library used for ID3 tags
 #include "libs/BorderLessWinUDF.au3" ;Library used for borderless resizeable GUIs
 #include "libs/JSON/JSON.au3" ;Library used for JSON
-#include "libs/GUICtrlOnHover.au3" ;Library used to add hover effects
+#include "libs/GUICtrlOnHover.au3" ;Library used to add hover and click effects to buttons
+#include "libs/CompInfo.au3" ;Library used to gather computer information
 #EndRegion ;Required libraries for program functionality
 
 #Region ;Initiation sequence
@@ -101,12 +102,33 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 		_zPlayer_Settings_Save($mProgram["Registry Address"], "Current Installed Version", $mProgram["Build"])
 	EndIf
 
+	$mProgram["Main Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Main Directory", @ScriptDir)
 	$mProgram["Install Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Install Directory", @ScriptDir & "\app")
-	$mProgram["Temp Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Temp Directory", @ScriptDir & "\app\temp")
+	$mProgram["Temp Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Temp Directory", $mProgram["Install Directory"] & "\temp")
 	$mProgram["Update URL"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Update URL", "https://example.com/this_is_not_decided")
 	$mProgram["Update Channel"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Update Channel", "Preview")
 	$mProgram["Theme Store URL"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Theme Store URL", "https://example.com/this_is_not_decided")
 	$mProgram["Theme Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Theme Directory", $mProgram["Install Directory"] & "\themes")
+
+	If Not FileExists($mProgram["Main Directory"]) Then
+		$mProgram["Main Directory"] = @ScriptDir
+		_zPlayer_Settings_Save($mProgram["Registry Address Main"], "Main Directory", $mProgram["Main Directory"])
+	EndIf
+	If Not FileExists($mProgram["Install Directory"]) Then
+		$mProgram["Install Directory"] = $mProgram["Main Directory"] & "\app"
+		_zPlayer_Settings_Save($mProgram["Registry Address Main"], "Install Directory", $mProgram["Install Directory"])
+		DirCreate($mProgram["Install Directory"])
+	EndIf
+	If Not FileExists($mProgram["Temp Directory"]) Then
+		$mProgram["Temp Directory"] = $mProgram["Install Directory"] & "\temp"
+		_zPlayer_Settings_Save($mProgram["Registry Address Main"], "Temp Directory", $mProgram["Temp Directory"])
+		DirCreate($mProgram["Temp Directory"])
+	EndIf
+	If Not FileExists($mProgram["Theme Directory"]) Then
+		$mProgram["Theme Directory"] = $mProgram["Install Directory"] & "\themes"
+		_zPlayer_Settings_Save($mProgram["Registry Address Main"], "Theme Directory", $mProgram["Theme Directory"])
+		DirCreate($mProgram["Theme Directory"])
+	EndIf
 
 	Global $mGUISettings[] ;Contains settings related to the GUI
 	$mGUISettings["Window Title"] = _zPlayer_Settings_Load($mProgram["Registry Address GUI"], "Window Title", "%Name% %Edition Name% Build %Build%")
@@ -267,7 +289,7 @@ WEnd
 				Case 1 ;Click
 					$hBitmap = $Icons[$hControl & ": Click"]
 				Case 2 ;Unclick
-					$hBitmap = $Icons[$hControl & ": Normal"]
+					$hBitmap = $Icons[$hControl & ": Hover"]
 			EndSwitch
 
 			_SendMessage(GUICtrlGetHandle($hControl), 0x0172, 0, $hBitmap)
