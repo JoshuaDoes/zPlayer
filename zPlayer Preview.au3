@@ -161,7 +161,7 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 	EndIf
 
 	Global $mGUISettings[] ;Contains settings related to the GUI
-	$mGUISettings["Window Title"] = _zPlayer_Settings_Load($mProgram["Registry Address GUI"], "Window Title", "%Name% %Edition Name% Build %Build%")
+	$mGUISettings["Window Title"] = _zPlayer_Settings_Load($mProgram["Registry Address GUI"], "Window Title", "%Name% %Edition Name% - Build %Build% (%Mode% Mode)")
 	$mGUISettings["Client Width"] = _zPlayer_Settings_Load($mProgram["Registry Address GUI"], "Client Width", 800)
 	If $mGUISettings["Client Width"] > @DesktopWidth Then
 		$mGUISettings["Client Width"] = 800
@@ -232,7 +232,7 @@ _GUI_EnableDragAndResize($GUI[0][1], $mGUISettings["Client Width"], $mGUISetting
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
 
 $GUI[1][0] = 0 ;Titlebar
-$GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 30, $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
+$GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], $mGUISettings["Client Height"], $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
 $GUI[2][0] = 1 ;Icon
 $GUI[2][1] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
 $GUI[3][0] = 1
@@ -628,9 +628,16 @@ WEnd
 			Return $retValue
 		EndFunc   ;==>_zPlayer_Settings_Load
 		Func _zPlayer_Settings_ProcessVariables(ByRef $retValue)
-			$retValue = StringReplace($retValue, "%Name%", $mProgram["Name"])
-			$retValue = StringReplace($retValue, "%Edition Name%", $mProgram["Edition Name"])
-			$retValue = StringReplace($retValue, "%Build%", $mProgram["Build"])
+			$retValue = StringReplace($retValue, "%Name%", $mProgram["Name"], 0, 1)
+			$retValue = StringReplace($retValue, "%Edition Name%", $mProgram["Edition Name"], 0, 1)
+			$retValue = StringReplace($retValue, "%Build%", $mProgram["Build"], 0, 1)
+			If StringInStr($retValue, "%Mode%", 1) Then
+				If $mProgram["Developer Mode"] Then
+					$retValue = StringReplace($retValue, "%Mode%", "Developer")
+				Else
+					$retValue = StringReplace($retValue, "%Mode%", "Standard")
+				EndIf
+			EndIf
 		EndFunc
 		Func _zPlayer_Settings_Save($sRegistryLocation, $sOption, $sValue)
 			_zPlayer_Debug_Log("> Saving setting [" & $sOption & "] with value [" & $sValue & "] at address [" & $sRegistryLocation & "]")
