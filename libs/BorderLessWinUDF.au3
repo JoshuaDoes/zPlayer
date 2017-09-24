@@ -19,14 +19,14 @@ Global $GLOBAL_MAIN_GUI, $Win_Min_ResizeX = 145, $Win_Min_ResizeY = 45
 ; Credits .......: https://www.autoitscript.com/wiki/Moving_and_Resizing_PopUp_GUIs
 ; Example .......: _GUI_EnableDragAndResize($Form1,300,200)
 ; ===============================================================================================================================
-Func _GUI_EnableDragAndResize($mGUI, $GUI_WIDTH, $GUI_HEIGHT, $Min_ResizeX = $Win_Min_ResizeX, $Min_ResizeY = $Win_Min_ResizeY, $AddShadowEffect = False)
+Func _GUI_EnableDragAndResize($mGUI, $GUI_WIDTH, $GUI_HEIGHT, $Min_ResizeX = $Win_Min_ResizeX, $Min_ResizeY = $Win_Min_ResizeY, $AddShadowEffect = False, $SizeLimit = True, $Resizing = True, $DisableBorder = True, $FullWindowDrag = True, $PreventWindowFrame = True)
 	Global $GLOBAL_MAIN_GUI = $mGUI, $Win_Min_ResizeX = $Min_ResizeX, $Win_Min_ResizeY = $Min_ResizeY
-	GUIRegisterMsg(0x0024, "INTERNAL_WM_GETMINMAXINFO") ; For GUI size limits
-	GUIRegisterMsg(0x0084, "INTERNAL_WM_NCHITTEST") ; For resizing and to allow doubleclick to maximize and drag on the upper GUI.
-	GUIRegisterMsg(0x0083, "INTERNAL_WM_NCCALCSIZE") ; To Prevent window border from drawing
-	GUIRegisterMsg(0x0201, "INTERNAL_WM_LBUTTONDOWN") ; For drag/GUI moving. Disable this if you want to only a specific the area for dragging.(By using labels with $GUI_WS_EX_PARENTDRAG)
+	If $SizeLimit Then GUIRegisterMsg(0x0024, "INTERNAL_WM_GETMINMAXINFO") ; For GUI size limits
+	If $Resizing Then GUIRegisterMsg(0x0084, "INTERNAL_WM_NCHITTEST") ; For resizing and to allow doubleclick to maximize and drag on the upper GUI.
+	If $DisableBorder Then GUIRegisterMsg(0x0083, "INTERNAL_WM_NCCALCSIZE") ; To Prevent window border from drawing
+	If $FullWindowDrag Then GUIRegisterMsg(0x0201, "INTERNAL_WM_LBUTTONDOWN") ; For drag/GUI moving. Disable this if you want to only a specific the area for dragging.(By using labels with $GUI_WS_EX_PARENTDRAG)
 	GUIRegisterMsg(0x0005, "INTERNAL_WM_SIZING") ; Fixing the maxmized position (otherwise we have a -7px margin on all sides due to the missing border)
-	GUIRegisterMsg(0x0086, "INTERNAL_WM_NCACTIVATE") ; Prevent Windowframe
+	If $PreventWindowFrame Then GUIRegisterMsg(0x0086, "INTERNAL_WM_NCACTIVATE") ; Prevent Windowframe
 	If $AddShadowEffect = True Then
 		Local $tMargs = DllStructCreate("int cxLeftWidth;int cxRightWidth;int cyTopHeight;int cyBottomHeight")
 		DllStructSetData($tMargs, 1, 1)

@@ -228,11 +228,11 @@ Global $GUI[4][2]
 Global $Icons[]
 $GUI[0][0] = 0 ;Normal GUI
 $GUI[0][1] = GUICreate($mGUISettings["Window Title"], $mGUISettings["Client Width"], $mGUISettings["Client Height"], $mGUISettings["Client X"], $mGUISettings["Client Y"])
-_GUI_EnableDragAndResize($GUI[0][1], $mGUISettings["Client Width"], $mGUISettings["Client Height"], 0, 0, $mGUISettings["Window Shadow"])
+_GUI_EnableDragAndResize($GUI[0][1], $mGUISettings["Client Width"], $mGUISettings["Client Height"], 0, 0, $mGUISettings["Window Shadow"], False, True, True, False, True)
 GUISetOnEvent($GUI_EVENT_CLOSE, "_zPlayer_Close")
 
 $GUI[1][0] = 0 ;Titlebar
-$GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], $mGUISettings["Client Height"], $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
+$GUI[1][1] = GUICtrlCreateLabel($mGUISettings["Window Title"], 0, 0, $mGUISettings["Client Width"], 30, $SS_CENTER + $SS_SUNKEN, $GUI_WS_EX_PARENTDRAG)
 $GUI[2][0] = 1 ;Icon
 $GUI[2][1] = GUICtrlCreateIcon($mTheme["Icon: Logo"], -1, 782, 382, 16, 16)
 $GUI[3][0] = 1
