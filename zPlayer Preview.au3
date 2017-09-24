@@ -75,24 +75,50 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 	$mProgram["Registry Address Main"] = $mProgram["Registry Address"] & "\v1"
 	If Not @Compiled Then
 		$mProgram["Developer Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address"], "Developer Mode", True)
-		If $mProgram["Developer Mode"] Then
+		If $mProgram["Developer Mode"] = "True" Then
 			$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Developer"
+			$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", True)
+			$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", True)
+			$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", True)
 		Else
-			$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Standard"
+			Local $iMsgBox = MsgBox(0x04 + 0x30, "zPlayer - Developer Mode", "You are currently running zPlayer from a developer environment. Would you like to switch to developer mode?" & @CRLF & @CRLF & "If you would like to preserve your current zPlayer settings for when you return to a compiled version of zPlayer, choose Yes.")
+			If $iMsgBox = 6 Then
+				$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Developer"
+				$mProgram["Developer Mode"] = True
+				_zPlayer_Settings_Save($mProgram["Registry Address"], "Developer Mode", True)
+				$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", True)
+				$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", True)
+				$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", True)
+			Else
+				$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Standard"
+				$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", False)
+				$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", False)
+				$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", False)
+			EndIf
 		EndIf
-		$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", True)
-		$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", True)
-		$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", True)
 	Else
 		$mProgram["Developer Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address"], "Developer Mode", False)
-		If $mProgram["Developer Mode"] Then
-			$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Developer"
-		Else
+		If $mProgram["Developer Mode"] = "False" Then
 			$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Standard"
+			$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", False)
+			$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", False)
+			$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", False)
+		Else
+			Local $iMsgBox = MsgBox(0x04 + 0x30, "zPlayer - Developer Mode", "You are currently running zPlayer from a standard environment. Would you like to switch to standard mode?" & @CRLF & @CRLF & "If you would like to preserve your current zPlayer settings for when you return to a development environment of zPlayer, choose Yes.")
+			If $iMsgBox = 6 Then
+				$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Standard"
+				$mProgram["Developer Mode"] = False
+				_zPlayer_Settings_Save($mProgram["Registry Address"], "Developer Mode", False)
+				$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", False)
+				$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", False)
+				$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", False)
+			Else
+				$mProgram["Registry Address Main"] = $mProgram["Registry Address Main"] & "\Developer"
+				$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", True)
+				$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", True)
+				$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", True)
+			EndIf
 		EndIf
-		$mProgram["Debug Mode"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Debug Mode", False)
-		$mProgram["STDOUT"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDOUT", False)
-		$mProgram["STDERR"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "STDERR", False)
 	EndIf
 	$mProgram["Registry Address GUI"] = $mProgram["Registry Address Main"] & "\GUI"
 	$mProgram["Registry Address User"] = $mProgram["Registry Address Main"] & "\User"
@@ -242,11 +268,11 @@ WEnd
 						_zPlayer_Debug_Log("> Deleting icon...")
 						_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Normal"])
 						_zPlayer_Debug_Log("--> Deleted main icon bitmap")
-						If $Icons[$GUI[$i][1] & ": Hover"] Then
+						If IsDeclared($Icons[$GUI[$i][1] & ": Hover"]) Then
 							_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Hover"])
 							_zPlayer_Debug_Log("--> Deleted hover icon bitmap")
 						EndIf
-						If $Icons[$GUI[$i][1] & ": Click"] Then
+						If IsDeclared($Icons[$GUI[$i][1] & ": Click"]) Then
 							_WinAPI_DeleteObject($Icons[$GUI[$i][1] & ": Click"])
 							_zPlayer_Debug_Log("--> Deleted click icon bitmap")
 						EndIf
