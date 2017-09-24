@@ -1,0 +1,8 @@
+#Log files
+app/logs/
+
+#Temporary files
+app/temp/
+
+#Test builds and release builds
+out/

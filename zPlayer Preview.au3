@@ -22,7 +22,7 @@
 #Region ;Directives on how to compile and/or run zPlayer using AutoIt3Wrapper_GUI
 #AutoIt3Wrapper_Version=Beta
 #AutoIt3Wrapper_Icon=zPlayer.ico
-#AutoIt3Wrapper_Outfile=zPlayer Preview Build 25 (Beta).exe
+#AutoIt3Wrapper_Outfile=out/zPlayer Preview Build 25 (Beta).exe
 #AutoIt3Wrapper_UseX64=n
 #AutoIt3Wrapper_Res_Comment=Play media files with a graphically clean and simple interface that users come to expect from their favorite media players.
 #AutoIt3Wrapper_Res_Description=zPlayer Preview (Beta)
@@ -109,6 +109,10 @@ AutoItSetOption("GUIDataSeparatorChar", Chr(1)) ;Sometimes titles have the defau
 	$mProgram["Update Channel"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Update Channel", "Preview")
 	$mProgram["Theme Store URL"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Theme Store URL", "https://example.com/this_is_not_decided")
 	$mProgram["Theme Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Theme Directory", $mProgram["Install Directory"] & "\themes")
+	If $mProgram["Developer Mode"] Or $mProgram["Debug Mode"] Then
+		$mProgram["Log Directory"] = _zPlayer_Settings_Load($mProgram["Registry Address Main"], "Log Directory", $mProgram["Install Directory"] & "\logs")
+		If Not FileExists($mProgram["Log Directory"]) Then DirCreate($mProgram["Log Directory"])
+	EndIf
 
 	If Not FileExists($mProgram["Main Directory"]) Then
 		$mProgram["Main Directory"] = @ScriptDir
@@ -256,12 +260,18 @@ WEnd
 	#Region ;Debug stuff
 		Func _zPlayer_Debug_Log($sMsg)
 			If $mProgram["Debug Mode"] Or $mProgram["Developer Mode"] Or $mProgram["STDOUT"] Then
-				ConsoleWrite($sMsg & @CRLF)
+				$sLogFile = $mProgram["Log Directory"] & "\zPlayer_" & @MON & "-" & @MDAY & "-" & @YEAR & ".log"
+				$sTime = "[" & @HOUR & ":" & @MIN & ":" & @SEC & ":" & @MSEC & "]"
+				ConsoleWrite($sTime & ": " & $sMsg & @CRLF)
+				FileWrite($sLogFile, $sTime & ": " & $sMsg & @CRLF)
 			EndIf
 		EndFunc
 		Func _zPlayer_Debug_LogError($sMsg)
 			If $mProgram["Debug Mode"] Or $mProgram["Developer Mode"] Or $mProgram["STDERR"] Then
-				ConsoleWrite($sMsg & @CRLF)
+				$sLogFile = $mProgram["Log Directory"] & "\zPlayer_" & @MON & "-" & @MDAY & "-" & @YEAR & ".log"
+				$sTime = "[" & @HOUR & ":" & @MIN & ":" & @SEC & ":" & @MSEC & "]"
+				ConsoleWriteError($sTime & ": " & $sMsg & @CRLF)
+				FileWrite($sLogFile, $sTime & ": " & $sMsg & @CRLF)
 			EndIf
 		EndFunc
 	#EndRegion
